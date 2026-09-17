@@ -1,0 +1,98 @@
+name: Android Release (APK + AAB)
+
+# Builds a signed release APK + AAB and publishes them to GitHub Releases.
+# Trigger: push a version tag (v1.0.0) or run manually from the Actions tab.
+#
+# Signing (optional but recommended):
+#   Repo Settings → Secrets and variables → Actions → New repository secret:
+#     ANDROID_KEYSTORE_BASE64   = base64 of your release keystore
+#         (create locally with:
+#          keytool -genkeypair -v -storetype PKCS12 \
+#            -keystore nexus-release-key.keystore -alias nexus_key_alias \
+#            -keyalg RSA -keysize 2048 -validity 10000
+#          then: base64 -w0 nexus-release-key.keystore )
+#     ANDROID_STORE_PASSWORD    = keystore password
+#     ANDROID_KEY_PASSWORD      = key password
+#   Without these secrets the workflow still succeeds and publishes a
+#   debug-signed APK (installable for testing, not for Play Store).
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'yarn'
+
+      - name: Install JS dependencies
+        run: yarn install --frozen-lockfile || yarn install
+
+      - name: Decode release keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 -d > android/app/nexus-release-key.keystore
+            echo "Keystore decoded: $(wc -c < android/app/nexus-release-key.keystore) bytes"
+          else
+            echo "::warning::ANDROID_KEYSTORE_BASE64 not set — APK will be debug-signed."
+          fi
+
+      - name: Build release APK + AAB
+        env:
+          APP_RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          APP_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          cd android
+          ./gradlew assembleRelease bundleRelease --no-daemon
+
+      - name: Rename artifacts
+        run: |
+          VERSION="${GITHUB_REF_NAME:-manual}"
+          cp android/app/build/outputs/apk/release/app-release.apk \
+             "Nexus-${VERSION}.apk"
+          cp android/app/build/outputs/bundle/release/app-release.aab \
+             "Nexus-${VERSION}.aab" 2>/dev/null || true
+          ls -lh Nexus-*.apk Nexus-*.aab 2>/dev/null || true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Nexus ${{ github.ref_name }}
+          body: |
+            ## Nexus ${{ github.ref_name }}
+
+            **Install:** download `Nexus-*.apk` below and open it on your
+            Android device (allow "install unknown apps" if prompted).
+
+            After installing, open the **Models** tab and download a
+            Nexus model (Nexus 1.0 Nano for low-RAM devices, Nexus 2.0 for
+            8 GB+ devices). All inference runs fully on-device.
+
+            Prefer a store build? Use `Nexus-*.aab` for Google Play upload.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
+          files: |
+            Nexus-*.apk
+            Nexus-*.aab
