@@ -1,0 +1,87 @@
+name: Model Release (publish GGUF models to GitHub Releases)
+
+# Publishes model files from the models/ directory as versioned GitHub
+# Release assets, e.g.:
+#   https://github.com/<org>/<repo>/releases/download/models-v1.0/nexus-1.1-q4_k_m.gguf
+#
+# Usage:
+#   1. Commit your .gguf files into models/ (use LFS for files >100 MB,
+#      or better: keep them out of git and upload them as workflow input
+#      files — see "Upload assets" variant below).
+#   2. Actions → "Model Release" → Run workflow → enter a version
+#      (e.g. models-v1.0).
+#
+# Limits: GitHub Release assets are capped at 2 GiB per file. Recommended
+# single-file quant: Q4_K_M. Split archives are not resumable in-app, so
+# keep each model in one file under 2 GiB.
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Release tag, e.g. models-v1.0'
+        required: true
+        default: 'models-v1.0'
+      title:
+        description: 'Release title'
+        required: false
+        default: 'Nexus Model Pack'
+      prerelease:
+        description: 'Mark as pre-release'
+        required: false
+        default: 'false'
+        type: choice
+        options: ['true', 'false']
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Collect model files
+        id: collect
+        run: |
+          mkdir -p assets_out
+          found=0
+          for f in models/*.gguf models/*.litertlm models/*.task; do
+            [ -e "$f" ] || continue
+            cp "$f" assets_out/
+            found=1
+            echo "staged: $(basename "$f") ($(du -h "$f" | cut -f1))"
+          done
+          if [ "$found" -eq 0 ]; then
+            echo "::error::No model files found in models/ (.gguf/.litertlm/.task). Add files first."
+            exit 1
+          fi
+          # enforce GitHub's 2 GiB per-asset cap
+          too_big=$(find assets_out -type f -size +2G | wc -l)
+          if [ "$too_big" -gt 0 ]; then
+            echo "::error::Files exceed the 2 GiB GitHub asset limit — re-quantize smaller."
+            find assets_out -type f -size +2G
+            exit 1
+          fi
+
+      - name: Publish model release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.version }}
+          name: ${{ inputs.title }} ${{ inputs.version }}
+          body: |
+            ## Nexus Model Pack ${{ inputs.version }}
+
+            Download a `.gguf` asset below, then in the **Nexus app**:
+            Models tab → ⋯ → add via Hugging Face search using the direct
+            URL, or sideload the file (Android: copy to
+            `Android/data/<package>/files/`, iOS: iTunes file sharing) —
+            or simply let the app download it in-app.
+
+            All models are quantized (Q4_K_M unless noted) for on-device
+            inference. See models/README.md for the Nexus lineup table.
+          draft: false
+          prerelease: ${{ inputs.prerelease == 'true' }}
+          files: assets_out/*
