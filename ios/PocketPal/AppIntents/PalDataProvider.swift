@@ -136,7 +136,7 @@ class PalDataProvider {
         }
 
         // WatermelonDB database name (configured in src/database/index.ts)
-        let dbPath = documentsPath.appendingPathComponent("pocketpalai.db").path
+        let dbPath = documentsPath.appendingPathComponent("nexus.db").path
 
         if fileManager.fileExists(atPath: dbPath) {
             print("[PalDataProvider] Database found!")

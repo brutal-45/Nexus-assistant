@@ -34,7 +34,10 @@ export type CheckoutErrorKind = '401' | '404' | '500' | 'network';
 // the checkout return under the shared nexus:// scheme.
 const CALLBACK_HOST = 'checkout';
 
-const CALLBACK_SCHEME = 'pocketpal';
+// Must match the custom scheme registered on both platforms (iOS
+// CFBundleURLSchemes, Android intent filters): the checkout return is only
+// delivered when the OS can route it here.
+const CALLBACK_SCHEME = 'nexus';
 
 const RECONCILE_BACKOFFS_MS = [1000, 2000, 3000, 4000, 4000, 4000];
 

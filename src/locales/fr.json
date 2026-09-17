@@ -348,7 +348,7 @@
     },
     "chatEmptyPlaceholder": {
       "noModelsTitle": "Aucun modèle disponible",
-      "noModelsDescription": "Téléchargez un modèle pour commencer à discuter avec PocketPal",
+      "noModelsDescription": "Téléchargez un modèle pour commencer à discuter avec Nexus",
       "noModelsButton": "Télécharger un modèle",
       "activateModelTitle": "Activez un modèle pour commencer",
       "activateModelDescription": "Sélectionnez le modèle et téléchargez-le. Après le téléchargement, appuyez sur Charger à côté du modèle et commencez à discuter.",

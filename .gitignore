@@ -110,4 +110,6 @@ android/android-build.log
 # Dev-team workflow control-plane artefacts (story docs, designer asks,
 # screenshot inventories). Live in the dev-team repo and are sometimes
 # synced into the worktree for local reference; never committed here.
-workflows/
+# Root-anchored on purpose: an unanchored `workflows/` would also shadow
+# .github/workflows/ and block adding new CI files.
+/workflows/

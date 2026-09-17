@@ -325,7 +325,8 @@ export const chatTemplates: Record<string, ChatTemplateConfig> = {
     ...Templates.templates.qwen2,
     name: 'qwen2',
     addGenerationPrompt: true,
-    systemPrompt: 'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+    systemPrompt:
+      'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
   },
   qwen25: {
     ...Templates.templates.qwen25,
@@ -337,7 +338,8 @@ export const chatTemplates: Record<string, ChatTemplateConfig> = {
   smolLM: {
     name: 'smolLM',
     addGenerationPrompt: true,
-    systemPrompt: 'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+    systemPrompt:
+      'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
     bosToken: '<|im_start|>',
     eosToken: '<|im_end|>',
     addBosToken: false,

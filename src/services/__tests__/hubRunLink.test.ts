@@ -22,9 +22,7 @@ describe('parseHubRunURL', () => {
 
   it('returns null for the wrong host', () => {
     expect(
-      parseHubRunURL(
-        'nexus://chat/run?repo_id=author/model&filename=x.gguf',
-      ),
+      parseHubRunURL('nexus://chat/run?repo_id=author/model&filename=x.gguf'),
     ).toBeNull();
   });
 
@@ -64,9 +62,7 @@ describe('parseHubRunURL', () => {
   });
 
   it('returns null when repo_id is missing', () => {
-    expect(
-      parseHubRunURL('nexus://hub/run?filename=model.gguf'),
-    ).toBeNull();
+    expect(parseHubRunURL('nexus://hub/run?filename=model.gguf')).toBeNull();
   });
 
   it('returns null for an unparseable URL string', () => {

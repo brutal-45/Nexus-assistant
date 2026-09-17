@@ -130,7 +130,7 @@ describe('ChatScreen', () => {
     const input = getByPlaceholderText(l10n.en.chat.typeYourMessage);
 
     await act(async () => {
-      fireEvent.changeText(input, 'Hello, PocketPal!');
+      fireEvent.changeText(input, 'Hello, Nexus!');
     });
 
     const sendButton = getByTestId('send-button');

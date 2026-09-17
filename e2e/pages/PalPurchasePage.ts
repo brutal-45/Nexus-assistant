@@ -157,7 +157,7 @@ export class PalPurchasePage extends BasePage {
 
   /**
    * Once the checkout Custom Tab takes the foreground, dismiss it with hardware
-   * BACK and wait for PocketPal to return. Best-effort: the e2e harness checkout
+   * BACK and wait for Nexus to return. Best-effort: the e2e harness checkout
    * page auto-completes fast, so if the success redirect wins before the tab is
    * caught, this returns without a BACK (the callback already fired). Either way
    * the app is left to settle; the caller asserts the checkout reaches a

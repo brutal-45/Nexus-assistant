@@ -77,7 +77,7 @@ class DownloadWorker(
             
             val request = Request.Builder()
                 .url(download.url)
-                .addHeader("User-Agent", "PocketPal/${BuildConfig.VERSION_NAME} (com.nexusai.nexus)")
+                .addHeader("User-Agent", "Nexus/${BuildConfig.VERSION_NAME} (com.nexusai.nexus)")
                 .apply {
                     if (file.exists() && file.length() > 0) {
                         val range = "bytes=${file.length()}-"

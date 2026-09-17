@@ -92,7 +92,7 @@ describe('CheckoutFlowStore', () => {
       }),
     );
     expect(prepareExternalLink).toHaveBeenCalledWith(session.checkout_url);
-    expect(openAuth).toHaveBeenCalledWith(session.checkout_url, 'pocketpal');
+    expect(openAuth).toHaveBeenCalledWith(session.checkout_url, 'nexus');
     expect(checkoutFlowStore.status).toBe('browser_open');
     expect(checkoutFlowStore.purchaseId).toBe('pur_1');
   });
@@ -202,7 +202,7 @@ describe('CheckoutFlowStore', () => {
       checkoutFlowStore.start('pal-1');
       await flushMicrotasks();
       expect(checkoutFlowStore.status).toBe('browser_open');
-      expect(openAuth).toHaveBeenCalledWith(session.checkout_url, 'pocketpal');
+      expect(openAuth).toHaveBeenCalledWith(session.checkout_url, 'nexus');
     });
 
     it("'user_canceled' (Play disclosure declined) -> cancelled, no tab, no report", async () => {
@@ -368,9 +368,7 @@ describe('CheckoutFlowStore', () => {
   });
 
   it('openAuth resolves a success callback -> reconcile -> owned', async () => {
-    openAuth.mockResolvedValue(
-      'nexus://checkout/success?purchase_id=pur_1',
-    );
+    openAuth.mockResolvedValue('nexus://checkout/success?purchase_id=pur_1');
     checkPalOwnership.mockResolvedValueOnce({owned: true});
     await checkoutFlowStore.start('pal-1');
     await flushMicrotasks();
@@ -564,7 +562,7 @@ describe('CheckoutFlowStore — iOS (link-out prep absent)', () => {
     await Promise.resolve();
     expect(iosOpenAuth).toHaveBeenCalledWith(
       'https://checkout.stripe.com/c/pay/cs_1',
-      'pocketpal',
+      'nexus',
     );
     expect(store.status).toBe('browser_open');
   });

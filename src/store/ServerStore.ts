@@ -16,7 +16,7 @@ import {ReasoningCapability} from '../utils/reasoningCapability';
 import {deriveListCapsMap} from '../utils/listCaps';
 import type {ListDerivedCaps} from '../utils/listCaps';
 
-const KEYCHAIN_SERVICE_PREFIX = 'pocketpal-server-';
+const KEYCHAIN_SERVICE_PREFIX = 'nexus-server-';
 
 /** Minimum interval between auto-fetch cycles (ms) */
 const FETCH_THROTTLE_MS = 60000;

@@ -6,7 +6,7 @@
  *   fetchModelFilesDetails (fetch), fetchGGUFSpecs (fetch).
  *
  * DeviceInfo.getVersion() is mocked to '1.0.0' via the device-info fixture, so
- * the expected UA is `PocketPal/1.0.0 (com.nexusai.nexus)`.
+ * the expected UA is `Nexus/1.0.0 (com.nexusai.nexus)`.
  */
 
 import axios from 'axios';
@@ -22,14 +22,14 @@ import {hfUserAgent} from '../../utils/hfUserAgent';
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
 
-const EXPECTED_UA = 'PocketPal/1.0.0 (com.nexusai.nexus)';
+const EXPECTED_UA = 'Nexus/1.0.0 (com.nexusai.nexus)';
 
 describe('hf.ts attribution User-Agent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('hfUserAgent builds PocketPal/<version> (com.nexusai.nexus)', () => {
+  it('hfUserAgent builds Nexus/<version> (com.nexusai.nexus)', () => {
     expect(hfUserAgent()).toBe(EXPECTED_UA);
   });
 
