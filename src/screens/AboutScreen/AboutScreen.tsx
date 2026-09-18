@@ -132,7 +132,7 @@ export const AboutScreen: React.FC = () => {
             <Button
               mode="outlined"
               onPress={() =>
-                Linking.openURL('https://github.com/a-ghorbani/pocketpal-ai')
+                Linking.openURL('https://github.com/brutal-45/Nexus-assistant')
               }
               style={styles.actionButton}
               icon={GithubButtonIcon}>
@@ -167,14 +167,20 @@ export const AboutScreen: React.FC = () => {
             <Text
               style={styles.legalLink}
               onPress={() =>
-                Linking.openURL('https://pocketpal.dev/privacy-policy')
+                Linking.openURL(
+                  'https://github.com/brutal-45/Nexus-assistant/blob/master/PRIVACY_POLICY.md',
+                )
               }>
               {l10n.about.privacyPolicy}
             </Text>
             <Text style={styles.legalSeparator}>·</Text>
             <Text
               style={styles.legalLink}
-              onPress={() => Linking.openURL('https://pocketpal.dev/terms')}>
+              onPress={() =>
+                Linking.openURL(
+                  'https://github.com/brutal-45/Nexus-assistant/blob/master/TERMS_OF_SERVICE.md',
+                )
+              }>
               {l10n.about.termsOfService}
             </Text>
           </View>

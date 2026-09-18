@@ -517,7 +517,7 @@
     },
     "chatEmptyPlaceholder": {
       "noModelsTitle": "Keine Modelle verfügbar",
-      "noModelsDescription": "Um ein Gespräch zu beginnen, laden Sie ein Modell mit PocketPal herunter",
+      "noModelsDescription": "Um ein Gespräch zu beginnen, laden Sie ein Modell mit Nexus herunter",
       "noModelsButton": "Modell herunterladen",
       "activateModelTitle": "Modell aktivieren, um zu starten",
       "activateModelDescription": "Wählen Sie das Modell aus und laden Sie es herunter. Tippen Sie nach dem Download neben dem Modell auf 'Laden' und beginnen Sie mit dem Chat.",
@@ -567,7 +567,7 @@
     },
     "modelErrorReportSheet": {
       "title": "Bericht Fehler beim laden eines Modells",
-      "privacyNote": "Helfen Sie uns, PocketPal zu verbessern, indem Sie Details über diesen Fehler teilen. Überprüfen Sie unten, was geteilt wird - Sie können alle Elemente entfernen, die Sie lieber nicht teilen wollen.",
+      "privacyNote": "Helfen Sie uns, Nexus zu verbessern, indem Sie Details über diesen Fehler teilen. Überprüfen Sie unten, was geteilt wird - Sie können alle Elemente entfernen, die Sie lieber nicht teilen wollen.",
       "errorMessage": "Fehlermeldung",
       "modelInfo": "Modellinformation",
       "modelName": "Name",
@@ -585,7 +585,7 @@
       "submit": "Bericht senden",
       "success": {
         "title": "Bericht gesendet",
-        "message": "Danke, dass Sie uns helfen, PocketPal zu verbessern. Ihr Bericht hilft uns, dieses Problem zu beheben."
+        "message": "Danke, dass Sie uns helfen, Nexus zu verbessern. Ihr Bericht hilft uns, dieses Problem zu beheben."
       },
       "error": {
         "title": "Bericht senden gescheitert",

@@ -31,7 +31,7 @@ struct OpenPalChatIntent: AppIntent {
     func perform() async throws -> some IntentResult {
         // Build deep link URL
         var urlComponents = URLComponents()
-        urlComponents.scheme = "pocketpal"
+        urlComponents.scheme = "nexus"
         urlComponents.host = "chat"
         
         var queryItems: [URLQueryItem] = [

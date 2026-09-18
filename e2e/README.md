@@ -1,4 +1,4 @@
-# PocketPal E2E Tests
+# Nexus E2E Tests
 
 End-to-end tests using Appium + WebDriverIO for local devices and AWS Device Farm.
 

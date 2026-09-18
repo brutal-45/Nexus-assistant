@@ -43,16 +43,18 @@ First launch: open **Models** tab → search Hugging Face (`your-org/your-model`
 ### Android
 
 ```bash
-# 1) create YOUR release keystore (back it up — lost key = lost update channel)
+# 1) create YOUR release keystore (back it up — lost key = lost update channel).
+#    Filename and alias are fixed by android/app/build.gradle → signingConfigs.release:
 keytool -genkeypair -v -storetype PKCS12 \
-  -keystore android/app/my-release-key.keystore \
-  -alias nexus-app -keyalg RSA -keysize 2048 -validity 10000
+  -keystore android/app/nexus-release-key.keystore \
+  -alias nexus_key_alias -keyalg RSA -keysize 2048 -validity 10000
 
-# 2) wire it into android/app/build.gradle (replace the upstream
-#    nexus-release-key.keystore signingConfigs.release block)
+# 2) provide the passwords — .env (see .env.example) or the environment:
+#    APP_RELEASE_STORE_PASSWORD=...  APP_RELEASE_KEY_PASSWORD=...
+#    Without them the build falls back to debug signing.
 
-cd android && ./gradlew bundleRelease
-# → app/build/outputs/bundle/release/app-release.aab
+cd android && ./gradlew bundleProdRelease
+# → app/build/outputs/bundle/prodRelease/app-prod-release.aab
 ```
 
 `versionCode` / `versionName` live in `android/app/build.gradle`.
@@ -77,11 +79,19 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 - `ios/PocketPal/Info.plist` → `CFBundleDisplayName` / `CFBundleName` / URL scheme
 - `ios/PocketPal.xcodeproj/project.pbxproj` → `PRODUCT_BUNDLE_IDENTIFIER` (+ tests target), `MARKETING_VERSION 1.0.0`, `CURRENT_PROJECT_VERSION 1`
 - `ios/PocketPal/PocketPal.entitlements` → keychain group re-scoped to new bundle ID
-- All `pocketpal://` deep-link routes in JS/Kotlin/Swift (parser: `src/services/hubRunLink.ts`)
+- All `pocketpal://` deep-link routes in JS/Kotlin/Swift (parser: `src/services/hubRunLink.ts`; checkout callback scheme in `src/store/CheckoutFlowStore.ts`; Siri intents in `ios/PocketPal/AppIntents/`)
+- Root component name aligned with `app.json`: `MainActivity.getMainComponentName()` (Android) and `AppDelegate.startReactNative(withModuleName:)` (iOS) → `Nexus`
+- Launch screen label (`ios/PocketPal/LaunchScreen.storyboard`)
+- Permission prompts (`ios/PocketPal/Info.plist` usage descriptions)
+- Product name in all 18 locale files (`src/locales/*.json`)
+- Database name `nexus` (`src/database/index.ts` ↔ `ios/PocketPal/AppIntents/PalDataProvider.swift` ↔ `android/app/src/main/res/xml/backup_rules_legacy.xml`)
+- Keychain / AsyncStorage namespaces (`nexus-server-*` in `src/store/ServerStore.ts`, `@nexus/*` in `src/store/FeedbackStore.ts`)
+- Outbound user agents (`src/utils/hfUserAgent.ts`, `DownloadWorker.kt`) → `Nexus/<version>`
 - Launcher icons: `mipmap-*` (5 densities + round) and `AppIcon.appiconset` (12 sizes)
 - In-app/README logos: `src/assets/pocketpal-*.png` (filenames kept)
 - Default chat-template system prompts (`src/utils/chat.ts`)
 - Store metadata (`fastlane/metadata/`), CI workflow package refs
+- Legal docs: `PRIVACY_POLICY.md`, `TERMS_OF_SERVICE.md` (linked from the About screen)
 
 **Intentionally kept (build-internal, renaming them risks breaking compilation):**
 - Kotlin namespace `com.pocketpal` + source dir `com/pocketpalai/` (matches upstream gradle `namespace`)
@@ -89,7 +99,7 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 - Xcode project/target name `PocketPal` (paths, scheme, entitlements filename)
 - npm packages `@pocketpalai/llama.rn`, `@pocketpalai/react-native-speech` (published dependency names)
 
-Users never see any of the above; changing them is optional hygiene (see the white-label guide §2.2 Step 4).
+Users never see any of the above; changing them is optional hygiene (see the [white-label guide](docs/white_labeling.md) §2.2 Step 4 — it also covers architecture, model packaging, and the full build/verification checklist).
 
 ## Ship Your Own Model
 
@@ -114,7 +124,9 @@ git tag v1.0.0 && git push origin v1.0.0
 ```
 
 Signing secrets (optional — builds fall back to debug signing without them):
-`ANDROID_KEYSTORE_BASE64`, `ANDROID_STORE_PASSWORD`, `ANDROID_KEY_PASSWORD`.
+`ANDROID_KEYSTORE_BASE64` (keystore created with `-alias nexus_key_alias`, the alias
+is pinned in `android/app/build.gradle`), `ANDROID_STORE_PASSWORD`, `ANDROID_KEY_PASSWORD`.
+Optional: `GOOGLE_SERVICES_JSON` (real Firebase config; a dummy is used otherwise).
 
 ## Upstream Sync
 

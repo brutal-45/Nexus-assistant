@@ -63,7 +63,7 @@ export function pushConfig(
   matrix: ReturnType<typeof getBenchmarkMatrix>,
   udid?: string,
 ): string {
-  const cfgFile = path.join(os.tmpdir(), 'pocketpal-bench-config.json');
+  const cfgFile = path.join(os.tmpdir(), 'nexus-bench-config.json');
   fs.writeFileSync(cfgFile, JSON.stringify(buildConfig(matrix), null, 2));
   adb(udid, 'shell', 'mkdir', '-p', REMOTE_DIR);
   adb(udid, 'push', cfgFile, `${REMOTE_DIR}/bench-config.json`);

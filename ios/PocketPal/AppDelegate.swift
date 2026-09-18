@@ -31,8 +31,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     window = UIWindow(frame: UIScreen.main.bounds)
 
+    // Must match `name` in app.json — index.js registers the root component
+    // under that key, so a mismatch here leaves the app with a blank window.
     factory.startReactNative(
-      withModuleName: "PocketPal",
+      withModuleName: "Nexus",
       in: window,
       launchOptions: launchOptions
     )
@@ -48,7 +50,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     options: [UIApplication.OpenURLOptionsKey : Any] = [:]
   ) -> Bool {
     // Handle deep links from Shortcuts
-    if url.scheme == "pocketpal" {
+    if url.scheme == "nexus" {
       NotificationCenter.default.post(
         name: NSNotification.Name("RCTOpenURLNotification"),
         object: nil,

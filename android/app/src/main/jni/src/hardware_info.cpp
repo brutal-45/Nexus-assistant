@@ -27,7 +27,7 @@ typedef int (*mallopt_fn_t)(int, int);
 // The `appmodules` target compile flags include -DLOG_TAG="ReactNative",
 // which would clash if we redefined plain `LOG_TAG` here. Distinct name
 // to avoid -Wmacro-redefined.
-#define HW_INFO_LOG_TAG "PocketPalHardwareInfo"
+#define HW_INFO_LOG_TAG "NexusHardwareInfo"
 #define HW_INFO_LOGI(...) \
     __android_log_print(ANDROID_LOG_INFO, HW_INFO_LOG_TAG, __VA_ARGS__)
 

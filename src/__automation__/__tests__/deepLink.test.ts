@@ -17,7 +17,7 @@ jest.mock('../../utils/memoryProfile', () => ({
 // care about host + queryParams so we fill the rest with placeholders.
 const makeParams = (overrides: Partial<DeepLinkParams>): DeepLinkParams => ({
   url: 'nexus://placeholder',
-  scheme: 'pocketpal',
+  scheme: 'nexus',
   host: 'memory',
   ...overrides,
 });

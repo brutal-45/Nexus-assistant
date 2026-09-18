@@ -5,4 +5,4 @@ import DeviceInfo from 'react-native-device-info';
  * The `(com.nexusai.nexus)` token is a fixed attribution key on both platforms.
  */
 export const hfUserAgent = (): string =>
-  `PocketPal/${DeviceInfo.getVersion()} (com.nexusai.nexus)`;
+  `Nexus/${DeviceInfo.getVersion()} (com.nexusai.nexus)`;

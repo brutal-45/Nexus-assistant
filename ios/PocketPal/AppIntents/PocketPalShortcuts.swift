@@ -2,7 +2,7 @@
 //  PocketPalShortcuts.swift
 //  PocketPal
 //
-//  App Shortcuts provider for PocketPal
+//  App Shortcuts provider for Nexus
 //
 
 import Foundation

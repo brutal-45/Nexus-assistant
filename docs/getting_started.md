@@ -4,9 +4,7 @@ Note: Part of this guide is outdated. It will be updated soon.
 
 ## Installation
 
-**iPhone** users can grab it here: [Nexus on the App Store](https://apps.apple.com/us/app/pocketpal-ai/id6502579498)
-
-**Android** users can get it from here: [Nexus on Google Play](https://play.google.com/store/apps/details?id=com.nexusai.nexus)
+Nexus is built from source — see the [Quick Start in the README](../README.md#quick-start-debug-builds) for debug builds, or the **Automated Releases** section for signed APKs produced by GitHub Actions. Once store listings exist, replace this section with the App Store / Google Play links.
 
 Note: This is a personal project, so I am working on it in my spare time. It might have bugs and issues, and obviously, I have not tested it on all devices. If you encounter any issues, open an issue, or even better, contribute to the project!
 
@@ -19,7 +17,7 @@ Nexus comes pre-configured with some popular SLMs:
 - Gemma 2
 - Qwen
 
-Modells need to be downloaded before use. You can download and use these models directly from the app and load any other GGUF models you like!
+Models need to be downloaded before use. You can download and use these models directly from the app and load any other GGUF models you like!
 
 <div style="display: flex; justify-content: center;">
     <img src="../assets/models_page.webp" alt="Models Page" style="width: 33%;">

@@ -313,7 +313,7 @@ describe('useDeepLinking — deep-link routing', () => {
     renderHook(() => useDeepLinking());
     await getHandler()({
       url: 'nexus://chat?palId=p1',
-      scheme: 'pocketpal',
+      scheme: 'nexus',
       host: 'chat',
       queryParams: {palId: 'p1'},
     });

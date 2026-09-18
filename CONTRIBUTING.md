@@ -67,13 +67,14 @@ If your changes affect the app's behavior, ensure you include or update tests as
 
 ### Translations (Localization)
 
-PocketPal uses [Weblate](https://hosted.weblate.org/translate/pocketpal-ai) for managing translations. When adding or changing user-facing strings:
+Nexus uses [Weblate](https://hosted.weblate.org/translate/pocketpal-ai) for managing translations. When adding or changing user-facing strings:
 
 - **Only edit `src/locales/en.json`** (the English source file). Do not edit `ja.json`, `zh.json`, or other language files directly — they are managed by translators through Weblate and will be overwritten.
 - Use `{{placeholder}}` syntax (double braces) for dynamic values, e.g. `"Imported {{count}} sessions"`.
 - Run `yarn l10n:validate` to check that your JSON is valid and placeholders are consistent.
+- The product name is **Nexus** in every language. Never translate or rebrand it (upstream translations may still say "PocketPal" — re-check the brand token after any Weblate sync).
 
-**To contribute translations**, visit [PocketPal on Weblate](https://hosted.weblate.org/translate/pocketpal-ai) — no code changes needed.
+**To contribute translations**, visit [the Weblate project](https://hosted.weblate.org/translate/pocketpal-ai) — no code changes needed.
 
 ### Commit Message Guidelines
 

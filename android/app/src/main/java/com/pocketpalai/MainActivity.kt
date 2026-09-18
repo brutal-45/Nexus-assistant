@@ -15,9 +15,10 @@ class MainActivity : ReactActivity() {
 
   /**
    * Returns the name of the main component registered from JavaScript. This is used to schedule
-   * rendering of the component.
+   * rendering of the component. Must match `name` in app.json — index.js
+   * registers the root component under that key.
    */
-  override fun getMainComponentName(): String = "PocketPal"
+  override fun getMainComponentName(): String = "Nexus"
 
   /**
    * Returns the instance of the [ReactActivityDelegate]. We use [DefaultReactActivityDelegate]

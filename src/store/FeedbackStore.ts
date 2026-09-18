@@ -2,7 +2,7 @@ import {makeAutoObservable} from 'mobx';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {v4 as uuidv4} from 'uuid';
 
-const FEEDBACK_ID_STORAGE_KEY = '@pocketpal_ai/app_feedback_id';
+const FEEDBACK_ID_STORAGE_KEY = '@nexus/app_feedback_id';
 
 /**
  * Manages a persistent ID for feedback submissions to:
