@@ -16,8 +16,10 @@ This document defines the requirements for a proper Nexus release. It is the sin
 
 ## Secrets & Variables Required for Full Release
 
-### Android Release (APK + AAB) — `android-release.yml`
+### Android Release (APK + AAB) — `release.yml`
 **Trigger:** tag `v*` or manual dispatch. Produces signed APK + AAB to GitHub Release.
+The release is always keyed off the version in `.version` (tag `vX.Y.Z`), so a
+manual dispatch from any branch updates the same release as a tag push.
 
 | Secret / Var | Type | Required | Purpose |
 |--------------|------|----------|---------|
@@ -32,24 +34,34 @@ This document defines the requirements for a proper Nexus release. It is the sin
 | `GOOGLE_IOS_CLIENT_ID` | Var | Optional | Google Sign-In iOS |
 | `GOOGLE_WEB_CLIENT_ID` | Var | Optional | Google Sign-In Web |
 
-### Full Release — `release.yml`
-**Trigger:** manual dispatch with `version_type` (major/minor/patch...). Bumps version, builds Android + iOS, uploads to stores.
+### iOS Release (IPA) — `ios-release.yml`
+**Trigger:** tag `v*` or manual dispatch (macos-14 runner). Builds the IPA
+(`xcodebuild archive`, Release) and attaches `Nexus-vX.Y.Z.ipa` to the same
+GitHub Release as the Android artifacts.
 
-Additional secrets beyond Android Release:
+Signing secrets (all required for a signed IPA; any missing → unsigned
+fallback IPA with warning, release still published):
 
 | Secret | Purpose |
 |--------|---------|
-| `PLAY_STORE_SERVICE_ACCOUNT_JSON` | Play Store service account for Alpha track upload |
-| `MATCH_PASSWORD` | fastlane match password |
-| `MATCH_GIT_URL` | match repo URL |
-| `MATCH_GITHUB_TOKEN` | token for match repo |
 | `APP_STORE_CONNECT_API_KEY_ID` | App Store Connect API Key ID |
 | `APP_STORE_CONNECT_API_ISSUER_ID` | Issuer ID |
 | `APP_STORE_CONNECT_API_KEY_CONTENT` | .p8 key content |
 | `APP_STORE_CONNECT_USER_ID` | User ID |
-| `GOOGLE_SERVICES_PLIST` | iOS GoogleService-Info.plist |
+| `MATCH_GIT_URL` | fastlane match repo URL |
+| `MATCH_GITHUB_TOKEN` | token for match repo |
+| `MATCH_PASSWORD` | fastlane match password |
 
-If Play Store / App Store secrets are missing, the workflow still succeeds and creates GitHub Release, but skips store uploads with warning.
+Optional:
+
+| Secret | Purpose |
+|--------|---------|
+| `GOOGLE_SERVICES_PLIST` | iOS GoogleService-Info.plist (dummy used otherwise) |
+
+A signed build uses the `build_for_device_farm` lane in `ios/fastlane/Fastfile`
+(development export via match-managed profiles). If the signed build fails,
+the workflow falls back to the unsigned IPA so a bad credential set can never
+block the release.
 
 ### Model Release — `model-release.yml`
 **Trigger:** manual dispatch. Publishes GGUF from `models/` to GitHub Release.
@@ -103,12 +115,17 @@ Current: **1.17.5** / versionCode 3 / build 3
 ## Release Flow (recommended)
 
 1. Ensure `master` is green (CI passes)
-2. Run **Release Workflow** → choose `patch` (or minor/major)
-   - Bumps version, commits, tags `vX.Y.Z`, builds Android, verifies payload, pushes tag, creates GitHub Release with APK, optionally uploads AAB to Play Alpha and IPA to TestFlight
-3. Tag push triggers **Android Release** workflow → builds APK+AAB again and attaches to same GitHub Release (idempotent, updates release)
+2. Bump the version locally: `bundle exec fastlane bump_version version_type:patch`
+   (updates package.json, .version, Android versionCode/Name and iOS
+   MARKETING_VERSION/build number atomically), then commit and push
+3. Push tag `vX.Y.Z` → triggers **Android Release (APK + AAB)** (`release.yml`)
+   and **iOS Release (IPA)** (`ios-release.yml`); both attach their artifacts
+   to the same GitHub Release (idempotent — a rerun updates the release)
 4. For models: add `.gguf` to `models/` → run **Model Release** → versioned model pack release
 
-For hotfix APK without version bump: push tag `vX.Y.Z` manually or run **Android Release** manually.
+For a hotfix without a version bump: run **Android Release (APK + AAB)** and/or
+**iOS Release (IPA)** manually from the Actions tab (they key off `.version`),
+or push the existing tag again.
 
 ## Local Verification (without full Android build)
 
