@@ -5,13 +5,12 @@ storage_mode("git")
 
 type("appstore") # The default type, can be: appstore, adhoc, enterprise or development
 
-app_identifier(["com.nexusai.nexus"]) 
+app_identifier(["com.nexusai.nexus"])
 username(ENV['APP_STORE_CONNECT_USER_ID'])
 
-# app_identifier(["tools.fastlane.app", "tools.fastlane.app2"])
-# username("user@fastlane.tools") # Your Apple Developer Portal username
+# git_branch defaults to "master" — the branch the match repos created for
+# this project live on (see NEXUS_MATCH_BRANCH in fastlane/Fastfile).
 
 # For all available options run `fastlane match --help`
-# Remove the # in the beginning of the line to enable the other options
 
-# The docs are available on https://docs.fastlane.tools/actions/match
+# The docs are available at https://docs.fastlane.tools/actions/match
