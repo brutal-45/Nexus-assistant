@@ -1,5 +1,56 @@
 default_platform :android
 
+desc "Bump version for both Android and iOS"
+lane :bump_version do |options|
+  version_type = options[:version_type] || "patch"
+  root_dir = File.expand_path('..', Dir.pwd)
+  
+  # Common paths
+  package_json_path = File.join(root_dir, 'package.json')
+  version_file_path = File.join(root_dir, '.version')
+
+  # Bump version in package.json
+  Dir.chdir(root_dir) do
+    sh("yarn version --#{version_type} --no-git-tag-version")
+  end
+  
+  new_version = JSON.parse(File.read(package_json_path))['version']
+  sh("echo #{new_version} > #{version_file_path}")
+
+  # For Android: Read current version code and increment it
+  gradle_file = File.join(root_dir, "android/app/build.gradle")
+  current_version_code = android_get_version_code(gradle_file: gradle_file).to_i
+  new_version_code = current_version_code + 1
+
+  # Update Android version
+  android_set_version_code(
+    gradle_file: gradle_file,
+    version_code: new_version_code
+  )
+  
+  android_set_version_name(
+    gradle_file: gradle_file,
+    version_name: new_version
+  )
+
+  # For iOS: Bump version and build number
+  ios_dir = File.join(root_dir, 'ios')
+  Dir.chdir(ios_dir) do
+    increment_version_number_in_xcodeproj(
+      version_number: new_version,
+      xcodeproj: File.join(ios_dir, "PocketPal.xcodeproj")
+    )
+    increment_build_number_in_xcodeproj(
+      xcodeproj: File.join(ios_dir, "PocketPal.xcodeproj")
+    )
+  end
+
+  UI.message("Bumped versions:")
+  UI.message("- Version name: #{new_version}")
+  UI.message("- Android version code: #{new_version_code}")
+  UI.message("- iOS build number: #{get_build_number_from_xcodeproj(xcodeproj: File.join(ios_dir, 'PocketPal.xcodeproj'))}")
+end
+
 # IMPORTANT — working directory. fastlane chdir()s into the fastlane folder
 # before executing any lane (fastlane/lib/fastlane/runner.rb:
 # `Dir.chdir(FastlaneCore::FastlaneFolder.path)`), so when the release
@@ -32,13 +83,6 @@ platform :android do
       end
     end
 
-    # Signing is injected through the standard android.injected.* project
-    # properties: they override the variant's signing config regardless of the
-    # build.gradle signingConfigs block. The properties are rendered onto the
-    # gradle command line as -P values, so print_command: false keeps the
-    # passwords out of the echoed command (it would land in android-build.log,
-    # which the payload gate greps). Gradle's own stdout stays on — that is the
-    # only live proof the build ran.
     signing_properties = {
       "android.injected.signing.store.file" => File.join(app_dir, "nexus-release-key.keystore"),
       "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
@@ -46,16 +90,6 @@ platform :android do
       "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
     }
 
-    # project_dir must point at the gradle project (android/): the gradle
-    # action resolves ./gradlew relative to it, and fastlane's chdir into
-    # this folder would otherwise make it look for gradlew in android/fastlane.
-    #
-    # Build APK for GitHub Release.
-    # flavor: "prod" is MANDATORY — task: "assemble" is a gradle meta-task
-    # that, post-flavor, would build both prodRelease AND e2eRelease
-    # (variantFilter kills e2eRelease but the meta-task would still run
-    # through both flavors' dependency graphs). Pinning the flavor makes
-    # the invocation unambiguous and halves CI time.
     gradle(
       task: "assemble",
       flavor: "prod",
@@ -65,8 +99,6 @@ platform :android do
       properties: signing_properties
     )
 
-    # Build Bundle for Play Store (same reasoning — pin to the prod flavor).
-    # Output: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
     gradle(
       task: "bundle",
       flavor: "prod",
@@ -87,8 +119,6 @@ platform :android do
       UI.user_error!("Expected release AAB not found at #{aab}. Run the build_android_release lane first.")
     end
 
-    # The release workflow writes the service-account key into android/
-    # (its `working-directory`), one level above this folder.
     json_key = File.join(android_dir, "play-store-key.json")
     unless File.exist?(json_key)
       UI.user_error!("Play Store service-account key not found at #{json_key} (the workflow writes it from PLAY_STORE_SERVICE_ACCOUNT_JSON).")
@@ -97,18 +127,11 @@ platform :android do
     upload_to_play_store(
       track: "alpha",
       package_name: "com.nexusai.nexus",
-      # Passed explicitly, and must stay that way. supply otherwise takes the
-      # bundle from lane_context[SharedValues::GRADLE_AAB_OUTPUT_PATH], which
-      # only exists in the process that ran `gradle(task: "bundle")` — a
-      # separate one from this lane's. Its fallback globs do not match this
-      # project's flavored output path, so an absent value uploads the
-      # metadata, no binary, and reports success.
       aab: aab,
       skip_upload_metadata: false,
       skip_upload_images: true,
       skip_upload_screenshots: true,
       skip_upload_apk: true,
-      # The fork keeps its store metadata at the repo root: fastlane/metadata/android
       metadata_path: File.join(root_dir, "fastlane", "metadata", "android"),
       json_key: json_key
     )
