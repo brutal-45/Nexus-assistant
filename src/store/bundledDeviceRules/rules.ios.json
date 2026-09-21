@@ -1,7 +1,7 @@
 {
   "schema_version": "1.2.0-draft",
   "platform": "ios",
-  "rules_version": "2026-06-11.1",
+  "rules_version": "2026-09-21.1",
   "classifier": {
     "ram_bands": [
       {
@@ -364,6 +364,30 @@
     "high": {
       "candidates": [
         {
+          "model": "deepseek-r1-distill-qwen-7b",
+          "display_name": "Nexus 3.5 Reasoner",
+          "hf_repo": "bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF",
+          "hf_filename": "DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
+          "params": 7615616512,
+          "size_bytes": 4683074560
+        },
+        {
+          "model": "qwen2.5-7b-instruct",
+          "display_name": "Nexus 3.2 Pro",
+          "hf_repo": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+          "hf_filename": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+          "params": 7615616512,
+          "size_bytes": 4683074560
+        },
+        {
+          "model": "mistral-7b-instruct-v0.3",
+          "display_name": "Nexus 3.1",
+          "hf_repo": "bartowski/Mistral-7B-Instruct-v0.3-GGUF",
+          "hf_filename": "Mistral-7B-Instruct-v0.3-Q4_K_M.gguf",
+          "params": 7248023552,
+          "size_bytes": 4369000000
+        },
+        {
           "model": "gemma-3-4b",
           "display_name": "Nexus 2.0",
           "hf_repo": "ggml-org/gemma-3-4b-it-GGUF",
@@ -433,6 +457,46 @@
     },
     "flagship": {
       "candidates": [
+        {
+          "model": "deepseek-r1-distill-qwen-7b",
+          "display_name": "Nexus 3.5 Reasoner",
+          "hf_repo": "bartowski/DeepSeek-R1-Distill-Qwen-7B-GGUF",
+          "hf_filename": "DeepSeek-R1-Distill-Qwen-7B-Q4_K_M.gguf",
+          "params": 7615616512,
+          "size_bytes": 4683074560
+        },
+        {
+          "model": "qwen2.5-coder-7b-instruct",
+          "display_name": "Nexus 3.4 Coder",
+          "hf_repo": "bartowski/Qwen2.5-Coder-7B-Instruct-GGUF",
+          "hf_filename": "Qwen2.5-Coder-7B-Instruct-Q4_K_M.gguf",
+          "params": 7615616512,
+          "size_bytes": 4683074560
+        },
+        {
+          "model": "meta-llama-3.1-8b-instruct",
+          "display_name": "Nexus 3.3 Max",
+          "hf_repo": "bartowski/Meta-Llama-3.1-8B-Instruct-GGUF",
+          "hf_filename": "Meta-Llama-3.1-8B-Instruct-Q4_K_M.gguf",
+          "params": 8030261248,
+          "size_bytes": 4920733696
+        },
+        {
+          "model": "qwen2.5-7b-instruct",
+          "display_name": "Nexus 3.2 Pro",
+          "hf_repo": "bartowski/Qwen2.5-7B-Instruct-GGUF",
+          "hf_filename": "Qwen2.5-7B-Instruct-Q4_K_M.gguf",
+          "params": 7615616512,
+          "size_bytes": 4683074560
+        },
+        {
+          "model": "mistral-7b-instruct-v0.3",
+          "display_name": "Nexus 3.1",
+          "hf_repo": "bartowski/Mistral-7B-Instruct-v0.3-GGUF",
+          "hf_filename": "Mistral-7B-Instruct-v0.3-Q4_K_M.gguf",
+          "params": 7248023552,
+          "size_bytes": 4369000000
+        },
         {
           "model": "gemma-3-4b",
           "display_name": "Nexus 2.0",

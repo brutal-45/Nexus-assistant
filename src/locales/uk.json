@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "У цих моделях функції системи Vision будуть вимкнені."
     },
     "buttons": {
-      "addFromHuggingFace": "Додати з Hugging Face",
+      "addFromHuggingFace": "Додати з Nexus Gallery",
       "addLocalModel": "Додати локальну модель",
       "reset": "Скинути"
     },

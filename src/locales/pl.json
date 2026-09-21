@@ -260,7 +260,7 @@
     "buttons": {
       "addLocalModel": "Dodaj Model Lokalny",
       "reset": "Zresetuj",
-      "addFromHuggingFace": "Dodaj z Hugging Face"
+      "addFromHuggingFace": "Dodaj z Nexus Gallery"
     },
     "modelsHeaderRight": {
       "menuTitleHf": "Modele Hugging Face",

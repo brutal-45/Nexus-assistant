@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "יכולות הראייה יושבתו עבור מודלים אלו."
     },
     "buttons": {
-      "addFromHuggingFace": "הוסף מ-Hugging Face",
+      "addFromHuggingFace": "הוסף מ-Nexus Gallery",
       "addLocalModel": "הוסף מודל מקומי",
       "reset": "איפוס"
     },

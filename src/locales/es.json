@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "Las capacidades de visión se desactivarán para estos modelos."
     },
     "buttons": {
-      "addFromHuggingFace": "Añadir desde Hugging Face",
+      "addFromHuggingFace": "Añadir desde Nexus Gallery",
       "addLocalModel": "Añadir modelo local",
       "reset": "Restablecer"
     },

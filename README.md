@@ -103,7 +103,7 @@ Users never see any of the above; changing them is optional hygiene (see the [wh
 
 ## Ship Your Own Model
 
-- **Nexus catalog (built-in):** the Models tab recommends the **Nexus lineup** (Nexus 1.0 → 3.0) automatically matched to device RAM. Names/entries live in `src/store/bundledDeviceRules/rules.<platform>.json`; see **models/README.md** for the full table.
+- **Nexus catalog (built-in):** the Models tab recommends the **Nexus lineup** (Nexus 1.0 → 3.5) automatically matched to device RAM, including capable 4 GB–5 GB models (Nexus 3.1–3.5) for advanced offline reasoning, coding, and problem solving. Names/entries live in `src/store/bundledDeviceRules/rules.<platform>.json`; see **models/README.md** for the full table.
 - **Release models on GitHub (automated):** drop `.gguf` files into `models/`, run **Actions → Model Release** → they publish as versioned GitHub Release assets (`models-vX.Y`). The workflow enforces the 2 GiB-per-asset limit.
 - **Online rules override:** the app refreshes its catalog from `nexus-ai-official/nexus-device-rules` (via jsDelivr). Fork the upstream rules repo, rename entries, push — until then the bundled Nexus catalog is used (fetch failures fall back gracefully).
 - **Pre-bundle a model:** iOS — add `.gguf` to the Xcode target and copy from `RNFS.MainBundlePath` at first run. Android — `android/app/src/main/assets/models/` + `RNFS.copyFileAssets(...)`. Mind Google Play's ~200 MB base-module limit.

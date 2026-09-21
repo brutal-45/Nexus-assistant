@@ -62,7 +62,7 @@ export const byPartialText = (text: string): string => {
 
 /**
  * Create selector by exact accessibilityLabel match
- * Use this for buttons with known labels like "Close menu", "Add from Hugging Face"
+ * Use this for buttons with known labels like "Close menu", "Add from Nexus Gallery"
  */
 export const byAccessibilityLabel = (label: string): string => {
   if (isAndroid()) {
@@ -209,7 +209,7 @@ export const Selectors = {
     // with accessibilityLabel as the name; testID gets suffixed with
     // "-container-outer-layer" so byTestId won't match the tappable element.
     get hfFab(): string {
-      return byAccessibilityLabel('Add from Hugging Face');
+      return byAccessibilityLabel('Add from Nexus Gallery');
     },
     get localFab(): string {
       return byAccessibilityLabel('Add Local Model');

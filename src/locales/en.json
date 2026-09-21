@@ -292,12 +292,12 @@
       "visionWillBeDisabled": "Vision capabilities will be disabled for these models."
     },
     "buttons": {
-      "addFromHuggingFace": "Add from Hugging Face",
+      "addFromHuggingFace": "Add from Nexus Gallery",
       "addLocalModel": "Add Local Model",
       "reset": "Reset"
     },
     "modelsHeaderRight": {
-      "menuTitleHf": "Hugging Face Models",
+      "menuTitleHf": "Nexus Gallery Models",
       "menuTitleDownloaded": "Downloaded Models",
       "menuTitleGrouped": "Group by Model Type",
       "menuTitleReset": "Reset Models List"
@@ -349,7 +349,7 @@
     "search": {
       "noResults": "No models found",
       "loadingMore": "Loading more...",
-      "searchPlaceholder": "Search Hugging Face models",
+      "searchPlaceholder": "Search Nexus Gallery models",
       "modelUpdatedLong": "Updated {{time}} ago",
       "modelUpdatedShort": "{{time}} ago",
       "modelUpdatedJustNowLong": "Updated just now",
@@ -819,7 +819,7 @@
       }
     },
     "modelsHeaderRight": {
-      "menuTitleHf": "Hugging Face Models",
+      "menuTitleHf": "Nexus Gallery Models",
       "menuTitleDownloaded": "Downloaded Models",
       "menuTitleGrouped": "Group by Model Type",
       "menuTitleReset": "Reset Models List"

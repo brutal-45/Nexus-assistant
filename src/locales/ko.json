@@ -836,7 +836,7 @@
       "availableToUse": "사용 가능"
     },
     "buttons": {
-      "addFromHuggingFace": "Hugging Face에서 가져오기",
+      "addFromHuggingFace": "Nexus Gallery에서 가져오기",
       "addLocalModel": "내 기기에서 모델 추가",
       "reset": "재설정"
     },
