@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "قابلیت بینایی برای این مدل‌ها غیرفعال خواهد شد."
     },
     "buttons": {
-      "addFromHuggingFace": "افزودن از Hugging Face",
+      "addFromHuggingFace": "افزودن از Nexus Gallery",
       "addLocalModel": "افزودن مدل محلی",
       "reset": "بازنشانی"
     },

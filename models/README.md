@@ -26,6 +26,11 @@ recommended per RAM tier; the version names below are what users see:
 | Nexus 2.1 | Gemma 4 E2B | Q4 | ~3 GB | 12 GB RAM |
 | Nexus 2.5 | Gemma 4 E4B | Q4 | ~4.8 GB | 12 GB+ RAM |
 | Nexus 3.0 | LFM2.5 8B-A1B (MoE) | Q4 | ~4.8 GB | 12 GB+ RAM |
+| Nexus 3.1 | Mistral 7B Instruct v0.3 | Q4_K_M | ~4.37 GB | 8-12 GB+ RAM (fast instruction following & tasks) |
+| Nexus 3.2 Pro | Qwen2.5 7B Instruct | Q4_K_M | ~4.68 GB | 8-12 GB+ RAM (universal problem solver: math, code, reasoning) |
+| Nexus 3.3 Max | Meta Llama 3.1 8B Instruct | Q4_K_M | ~4.92 GB | 12 GB+ RAM (broad world knowledge & versatile chat) |
+| Nexus 3.4 Coder | Qwen2.5 Coder 7B Instruct | Q4_K_M | ~4.68 GB | 12 GB+ RAM (expert offline coding, refactoring & debug) |
+| Nexus 3.5 Reasoner | DeepSeek R1 Distill Qwen 7B | Q4_K_M | ~4.68 GB | 8-12 GB+ RAM (deep chain-of-thought math & logic solver) |
 
 Naming/versioning lives in `src/store/bundledDeviceRules/rules.<platform>.json`
 (`display_name` per candidate). Underlying weights are Apache-2.0 / Gemma-terms

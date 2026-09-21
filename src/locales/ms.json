@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "Keupayaan penglihatan akan dilumpuhkan untuk model-model ini."
     },
     "buttons": {
-      "addFromHuggingFace": "Tambah daripada Hugging Face",
+      "addFromHuggingFace": "Tambah daripada Nexus Gallery",
       "addLocalModel": "Tambah Model Tempatan",
       "reset": "Tetap Semula"
     },

@@ -241,7 +241,7 @@
       "visionWillBeDisabled": "Bildverarbeitung wird für diese Modelle deaktiviert."
     },
     "buttons": {
-      "addFromHuggingFace": "Von Hugging Face hinzufügen",
+      "addFromHuggingFace": "Aus Nexus-Galerie hinzufügen",
       "addLocalModel": "Lokales Modell hinzufügen",
       "reset": "Zurücksetzen"
     },

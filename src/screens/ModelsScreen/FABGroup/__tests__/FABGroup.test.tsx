@@ -63,7 +63,7 @@ describe('FABGroup', () => {
 
     // Accessibility labels for screen readers
     expect(
-      getByLabelText('Add from Hugging Face', {includeHiddenElements: true}),
+      getByLabelText('Add from Nexus Gallery', {includeHiddenElements: true}),
     ).toBeTruthy();
     expect(
       getByLabelText('Add Local Model', {includeHiddenElements: true}),

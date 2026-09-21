@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "Kemampuan visi akan dinonaktifkan untuk model-model ini."
     },
     "buttons": {
-      "addFromHuggingFace": "Tambah dari Hugging Face",
+      "addFromHuggingFace": "Tambah dari Nexus Gallery",
       "addLocalModel": "Tambah Model Lokal",
       "reset": "Atur Ulang"
     },

@@ -880,7 +880,7 @@
       "useAddButtonForMore": "Используйте кнопку +, чтобы найти больше моделей"
     },
     "buttons": {
-      "addFromHuggingFace": "Добавить из Hugging Face",
+      "addFromHuggingFace": "Добавить из Nexus Gallery",
       "addLocalModel": "Добавить локальную модель",
       "reset": "Сброс"
     },

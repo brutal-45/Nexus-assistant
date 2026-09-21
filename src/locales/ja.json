@@ -292,7 +292,7 @@
       "visionWillBeDisabled": "これらのモデルのビジョン機能が無効になります"
     },
     "buttons": {
-      "addFromHuggingFace": "Hugging Faceから追加",
+      "addFromHuggingFace": "Nexus Galleryから追加",
       "addLocalModel": "ローカルモデルを追加",
       "reset": "リセット"
     },

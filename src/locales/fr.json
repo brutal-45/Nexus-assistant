@@ -118,7 +118,7 @@
       "useAddButtonForMore": "Utilisez le bouton + pour trouver plus de modèles"
     },
     "buttons": {
-      "addFromHuggingFace": "Ajouter depuis Hugging Face",
+      "addFromHuggingFace": "Ajouter depuis Nexus Gallery",
       "addLocalModel": "Ajouter un modèle local",
       "reset": "Réinitialiser"
     },
