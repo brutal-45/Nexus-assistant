@@ -6,19 +6,11 @@ name: iOS Release (IPA)
 #
 # NOTE — INSTALLATION REQUIRED (one manual step)
 # This file is not active where it sits: GitHub only runs workflows from
-# .github/workflows/. It was authored here because the CI push token in use
-# lacked the `workflows` permission needed to add files under
-# .github/workflows/.
-#
-# To activate Apple mobile releases, move it into place (works from the
-# GitHub web UI too — no local clone needed):
+# .github/workflows/. Copy or move it into place:
 #
 #     git mv release/ios-release.yml .github/workflows/ios-release.yml
 #     git commit -m "chore(ci): activate iOS release workflow"
 #     git push
-#
-# From the web UI: open this file, copy it, then Actions -> New workflow ->
-# paste into a new file named ios-release.yml and commit.
 #
 # What it produces once active
 #   Nexus-<tag>.ipa — an *unsigned* release IPA (payload packed from an
@@ -93,13 +85,20 @@ jobs:
             echo "::warning::SUPABASE_URL repo variable is not set — PalsHub/auth features will be inert in this build."
           fi
 
+      - name: Create iOS Env.xcconfig
+        run: |
+          cat > ios/Config/Env.xcconfig << 'EOL'
+          GOOGLE_WEB_CLIENT_ID = dummy-web-client-id.apps.googleusercontent.com
+          REVERSED_GOOGLE_IOS_CLIENT_ID = com.googleusercontent.apps.dummy-ios-client-id
+          EOL
+
       # The Xcode project references GoogleService-Info.plist in Resources,
       # so the file must exist for the build. Start from a dummy (mirrors
       # the Android google-services.json handling); replaced with the real
       # plist when the GOOGLE_SERVICE_INFO_PLIST secret is configured.
       - name: Create dummy GoogleService-Info.plist
         run: |
-          cat > ios/PocketPal/GoogleService-Info.plist << 'EOL'
+          cat > ios/GoogleService-Info.plist << 'EOL'
           <?xml version="1.0" encoding="UTF-8"?>
           <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
           <plist version="1.0">
@@ -131,13 +130,15 @@ jobs:
           </dict>
           </plist>
           EOL
+          cp ios/GoogleService-Info.plist ios/PocketPal/GoogleService-Info.plist
 
       - name: Use the real GoogleService-Info.plist when the secret is set
         env:
           GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
         run: |
           if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
-            printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/PocketPal/GoogleService-Info.plist
+            printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/GoogleService-Info.plist
+            cp ios/GoogleService-Info.plist ios/PocketPal/GoogleService-Info.plist
             echo "GoogleService-Info.plist written from secret."
           else
             echo "::warning::GOOGLE_SERVICE_INFO_PLIST not set — keeping the dummy plist; Firebase features will be non-functional in the built IPA."
@@ -149,20 +150,42 @@ jobs:
           bundle exec pod install --repo-update
 
       - name: Build unsigned release archive
+        env:
+          RCT_NO_LAUNCH_PACKAGER: 1
         run: |
-          set -o pipefail
-          xcodebuild \
-            -workspace ios/PocketPal.xcworkspace \
-            -scheme PocketPal \
-            -configuration Release \
-            -sdk iphoneos \
-            -destination 'generic/platform=iOS' \
-            -archivePath ios/build/Nexus.xcarchive \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            archive | xcpretty || true
-          test -d ios/build/Nexus.xcarchive/Products/Applications
+          set -euo pipefail
+          SIGNING=(
+            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_STYLE=Manual
+            DEVELOPMENT_TEAM=""
+            PROVISIONING_PROFILE_SPECIFIER=""
+          )
+          if xcodebuild \
+              -workspace ios/PocketPal.xcworkspace \
+              -scheme PocketPal \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              -archivePath ios/build/Nexus.xcarchive \
+              "${SIGNING[@]}" \
+              archive > ios/xcodebuild-archive.log 2>&1; then
+            echo "Archive succeeded."
+          else
+            echo "::warning::Archive failed; falling back to unsigned device build. Last 80 log lines:"
+            tail -n 80 ios/xcodebuild-archive.log || true
+            xcodebuild \
+              -workspace ios/PocketPal.xcworkspace \
+              -scheme PocketPal \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              -derivedDataPath ios/build \
+              "${SIGNING[@]}" \
+              build > ios/xcodebuild-build.log 2>&1
+            echo "Device build succeeded."
+          fi
 
       - name: Package IPA
         run: |

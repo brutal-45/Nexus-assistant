@@ -12,6 +12,17 @@ import {
   MessageType,
   Model,
 } from './types';
+import {
+  NEXUS_ASSISTANT_IDENTITY,
+  sanitizeAssistantIdentity,
+} from './assistantIdentity';
+
+export {
+  NEXUS_ASSISTANT_IDENTITY,
+  LEGACY_DEFAULT_SYSTEM_PROMPTS,
+  isShippedDefaultSystemPrompt,
+  sanitizeAssistantIdentity,
+} from './assistantIdentity';
 
 export const userId = 'y9d7f8pgn';
 export const assistantId = 'h3o3lc5xj';
@@ -30,13 +41,18 @@ export const assistant = {id: assistantId};
  * (e.g. tool-call-only steps) are skipped.
  */
 export function derivedText(message: MessageType.Any): string {
+  let raw = '';
   if (message.type === 'assistant_turn') {
-    return ((message as MessageType.AssistantTurn).steps ?? [])
+    raw = ((message as MessageType.AssistantTurn).steps ?? [])
       .map(s => s.content)
       .filter((c): c is string => !!c && c.length > 0)
       .join('\n\n');
+  } else {
+    raw = 'text' in message && message.text ? message.text : '';
   }
-  return 'text' in message && message.text ? message.text : '';
+  const isAssistant =
+    'author' in message && message.author?.id === assistant.id;
+  return isAssistant ? sanitizeAssistantIdentity(raw) : raw;
 }
 
 /**
@@ -77,7 +93,7 @@ function toWireToolCall(
 function stepToApiMessages(step: AgentStep): ChatMessage[] {
   const assistantMsg: ChatMessage = {
     role: 'assistant',
-    content: step.content ?? '',
+    content: sanitizeAssistantIdentity(step.content ?? ''),
   };
   if (step.toolCalls && step.toolCalls.length > 0) {
     assistantMsg.tool_calls = step.toolCalls.map(toWireToolCall);
@@ -250,41 +266,6 @@ export async function applyChatTemplate(
   return formattedChat || ' ';
 }
 
-/**
- * Canonical Nexus assistant identity.
- *
- * Applied as the system prompt for every bundled chat template and as the
- * default for Hugging Face / custom models, so the assistant ALWAYS
- * introduces itself as "Nexus" instead of whatever name the underlying
- * model was trained with (Qwen, H2O Danube, BounsiAI, ...). Keep it short —
- * it is prepended to every turn and small models follow short prompts best.
- */
-export const NEXUS_ASSISTANT_IDENTITY =
-  'You are Nexus, a private AI assistant that runs fully on your device. ' +
-  'Your name is Nexus: always introduce yourself as Nexus and never claim ' +
-  'or imply any other assistant, app, company, or model name (names like ' +
-  'Qwen, Gemma, Phi, Llama, Danube, SmolLM, DeepSeek, or BounsiAI are only ' +
-  'engine details, never your name). ' +
-  'Reply in the same language the user writes in, including Hindi and other ' +
-  'Indian languages. Be concise, friendly, and clear. You work fully ' +
-  'offline; if asked about live data, explain that you work offline.';
-
-/**
- * Previous default prompts that shipped in older Nexus builds. Models
- * downloaded while those builds were installed still carry them in their
- * persisted chat template; `resolveSystemPrompt` treats an exact match on
- * any of these as "no custom prompt" and substitutes the Nexus identity,
- * so already-downloaded models stop announcing the wrong name after the
- * app updates (no DB migration required).
- */
-export const LEGACY_DEFAULT_SYSTEM_PROMPTS: ReadonlySet<string> = new Set([
-  'You are a helpful assistant named H2O Danube3. You are precise, concise, and casual.',
-  'You are a helpful assistant named H2O Danube2. You are precise, concise, and casual.',
-  'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
-  'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.',
-  'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
-]);
-
 export const chatTemplates: Record<string, ChatTemplateConfig> = {
   custom: {
     name: 'custom',
@@ -405,7 +386,7 @@ export function getHFDefaultSettings(hfModel: HuggingFaceModel): {
     chatTemplate: '', // At the moment chatTemplate needs to be nunjucks, not jinja2. So by using empty string we force the use of gguf's chat template.
     addGenerationPrompt: true,
     // Every freshly downloaded HF model starts with the Nexus identity so
-    // it never announces the model's trained-in name (Qwen/BounsiAI/...).
+    // it never announces a trained-in model name.
     systemPrompt: NEXUS_ASSISTANT_IDENTITY,
     name: 'custom',
   };

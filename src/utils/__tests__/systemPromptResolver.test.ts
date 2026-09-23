@@ -112,6 +112,27 @@ describe('systemPromptResolver', () => {
       expect(result).toBe(NEXUS_ASSISTANT_IDENTITY);
     });
 
+    it('should replace a leftover BounsiAI identity with the Nexus identity', () => {
+      const activeModel: Partial<Model> = {
+        chatTemplate: {
+          systemPrompt: 'You are BounsiAI, a helpful assistant.',
+          addGenerationPrompt: false,
+          name: '',
+          bosToken: '',
+          eosToken: '',
+          chatTemplate: '',
+        },
+      };
+
+      const result = resolveSystemPrompt({
+        pal: null,
+        model: activeModel as Model,
+      });
+
+      expect(result).toBe(NEXUS_ASSISTANT_IDENTITY);
+      expect(result).not.toMatch(/bounsi/i);
+    });
+
     it('should replace legacy shipped defaults with the Nexus identity', () => {
       const legacyPrompts = [
         'You are a helpful assistant named H2O Danube3. You are precise, concise, and casual.',
@@ -119,6 +140,14 @@ describe('systemPromptResolver', () => {
         'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
         'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.',
         'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+        'You are Nexus, a private AI assistant that runs fully on your device. ' +
+          'Your name is Nexus: always introduce yourself as Nexus and never claim ' +
+          'or imply any other assistant, app, company, or model name (names like ' +
+          'Qwen, Gemma, Phi, Llama, Danube, SmolLM, DeepSeek, or BounsiAI are only ' +
+          'engine details, never your name). ' +
+          'Reply in the same language the user writes in, including Hindi and other ' +
+          'Indian languages. Be concise, friendly, and clear. You work fully ' +
+          'offline; if asked about live data, explain that you work offline.',
       ];
 
       for (const systemPrompt of legacyPrompts) {

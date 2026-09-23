@@ -11,13 +11,12 @@ export interface SystemPromptDependencies {
 /**
  * Resolves the system prompt based on priority:
  * 1. Pal's system prompt (with parameter rendering if needed)
- * 2. Model's chat template system prompt — unless it is blank or one of
- *    the legacy shipped defaults that made models announce a foreign
- *    identity (H2O Danube, "Qwen, created by Alibaba Cloud", ...)
- * 3. The canonical Nexus identity prompt, so the assistant always
- *    introduces itself as Nexus and never echoes a trained-in model name
- *    such as BounsiAI — for every model, on every install (including
- *    models downloaded before this behavior existed).
+ * 2. Model's chat template system prompt — unless it is blank, a shipped
+ *    default, or a leftover identity that named a foreign assistant
+ *    (BounsiAI, PocketPal, H2O Danube, …)
+ * 3. The canonical Nexus identity, so every model on every install
+ *    (including ones downloaded before this behavior existed) introduces
+ *    itself as Nexus.
  */
 export function resolveSystemPrompt(
   dependencies: SystemPromptDependencies,
@@ -35,13 +34,13 @@ export function resolveSystemPrompt(
   }
 
   // Priority 2: Model's chat template system prompt.
-  // Blank whitespace and legacy shipped defaults (which taught the model a
-  // foreign identity) are treated as "no custom prompt" and fall through.
+  // Blank whitespace, legacy shipped defaults, and leftover foreign-name
+  // identities are treated as "no custom prompt" and fall through.
   const templatePrompt = model?.chatTemplate?.systemPrompt;
   if (
     templatePrompt &&
     templatePrompt.trim().length > 0 &&
-    !LEGACY_DEFAULT_SYSTEM_PROMPTS.has(templatePrompt)
+    !isShippedDefaultSystemPrompt(templatePrompt)
   ) {
     return templatePrompt;
   }

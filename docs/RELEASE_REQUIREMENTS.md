@@ -34,10 +34,11 @@ manual dispatch from any branch updates the same release as a tag push.
 | `GOOGLE_IOS_CLIENT_ID` | Var | Optional | Google Sign-In iOS |
 | `GOOGLE_WEB_CLIENT_ID` | Var | Optional | Google Sign-In Web |
 
-### iOS Release (IPA) — `ios-release.yml`
-**Trigger:** tag `v*` or manual dispatch (macos-14 runner). Builds the IPA
-(`xcodebuild archive`, Release) and attaches `Nexus-vX.Y.Z.ipa` to the same
-GitHub Release as the Android artifacts.
+### iOS Release (IPA) — `release/ios-release.yml`
+**Trigger:** tag `v*` or manual dispatch (macos-15 runner) once the file is
+moved to `.github/workflows/ios-release.yml`. Builds the IPA
+(`xcodebuild archive` with unsigned fallback) and attaches
+`Nexus-vX.Y.Z.ipa` to the same GitHub Release as the Android artifacts.
 
 Signing secrets (all required for a signed IPA; any missing → unsigned
 fallback IPA with warning, release still published):
@@ -110,7 +111,7 @@ Push to `master` touching `src/locales/en.json` → uploads to Weblate via `sync
 
 Bump via: `bundle exec fastlane bump_version version_type:patch` (or major/minor/etc). The lane updates all 4 locations atomically.
 
-Current: **1.17.5** / versionCode 3 / build 3
+Current: **1.18.1** / versionCode 6 / build 6
 
 ## Release Flow (recommended)
 
@@ -119,8 +120,9 @@ Current: **1.17.5** / versionCode 3 / build 3
    (updates package.json, .version, Android versionCode/Name and iOS
    MARKETING_VERSION/build number atomically), then commit and push
 3. Push tag `vX.Y.Z` → triggers **Android Release (APK + AAB)** (`release.yml`)
-   and **iOS Release (IPA)** (`ios-release.yml`); both attach their artifacts
-   to the same GitHub Release (idempotent — a rerun updates the release)
+   and, once activated, **iOS Release (IPA)** (`ios-release.yml`); both attach
+   their artifacts to the same GitHub Release (idempotent — a rerun updates
+   the release)
 4. For models: add `.gguf` to `models/` → run **Model Release** → versioned model pack release
 
 For a hotfix without a version bump: run **Android Release (APK + AAB)** and/or
