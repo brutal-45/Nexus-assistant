@@ -20,7 +20,7 @@ This repository is a **white-labeled fork** of PocketPal AI. Store-facing identi
 | Android `applicationId` (Play Store ID) | `com.nexusai.nexus` |
 | iOS bundle ID | `com.nexusai.nexus` |
 | Deep-link scheme | `nexus://` |
-| Version | `1.0.0` (build 1) |
+| Version | `1.18.0` (build 5) |
 
 > **Before releasing:** search-and-replace the placeholder brand — `Nexus`, `nexus-app`, `com.nexusai.nexus`, `nexus://` — with your real brand. All identity tokens are centralized (see table in *Identity Map* below).
 
@@ -69,6 +69,38 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 1. Target → Signing & Capabilities → your team + bundle ID `com.nexusai.nexus`.
 2. `Product → Archive` → Distribute App. Archive on a **real device** at least once (simulators never exercise Metal).
 
+#### iOS application file (`.ipa`) via CI
+
+A ready-made workflow ships at `release/ios-release.yml`: it archives the
+app on a macOS runner and attaches `Nexus-<tag>.ipa` to the same GitHub
+Release as the Android APK/AAB for every version tag (`v*`). **Activate it
+with one move** (the automation token that added it may not write under
+`.github/workflows/`):
+
+```bash
+git mv release/ios-release.yml .github/workflows/ios-release.yml
+git commit -m "chore(ci): activate iOS release workflow" && git push
+```
+
+The built IPA is **unsigned** (built with `CODE_SIGNING_ALLOWED=NO` because
+distribution certificates live outside this repo) and installs on real
+iPhones/iPads with [AltStore](https://altstore.io),
+[Sideloadly](https://sideloadly.io), or TrollStore — the sideloading tool
+re-signs it for the device. Requires iOS 15.1+; Metal acceleration needs
+iOS 18+.
+
+App Store / TestFlight still requires a local archive with your Apple
+Developer credentials, per the steps above.
+
+## Staying up to date
+
+Devices that already installed Nexus are told when a newer build is out:
+after startup (at most once a day) the app checks this repository's
+latest GitHub Release and shows a one-tap **update dialog** with a direct
+link to the new APK (Android) / IPA (iOS). A manual check lives under
+**About → Updates → Check for updates**, and users can skip a specific
+version if they prefer not to be reminded of it again.
+
 ## Identity Map (what was rebranded vs. kept)
 
 **Replaced (store-facing / user-visible):**
@@ -77,7 +109,7 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 - `android/app/src/main/res/values/strings.xml` → `app_name`
 - `android/app/src/main/AndroidManifest.xml` → deep-link schemes → `nexus://`
 - `ios/PocketPal/Info.plist` → `CFBundleDisplayName` / `CFBundleName` / URL scheme
-- `ios/PocketPal.xcodeproj/project.pbxproj` → `PRODUCT_BUNDLE_IDENTIFIER` (+ tests target), `MARKETING_VERSION 1.0.0`, `CURRENT_PROJECT_VERSION 1`
+- `ios/PocketPal.xcodeproj/project.pbxproj` → `PRODUCT_BUNDLE_IDENTIFIER` (+ tests target), `MARKETING_VERSION 1.18.0`, `CURRENT_PROJECT_VERSION 5`
 - `ios/PocketPal/PocketPal.entitlements` → keychain group re-scoped to new bundle ID
 - All `pocketpal://` deep-link routes in JS/Kotlin/Swift (parser: `src/services/hubRunLink.ts`; checkout callback scheme in `src/store/CheckoutFlowStore.ts`; Siri intents in `ios/PocketPal/AppIntents/`)
 - Root component name aligned with `app.json`: `MainActivity.getMainComponentName()` (Android) and `AppDelegate.startReactNative(withModuleName:)` (iOS) → `Nexus`

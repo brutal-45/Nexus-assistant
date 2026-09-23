@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} sedang dimuat turun",
     "titleByModel": "{{name}} sedang dimuat turun",
     "extraInProgress": "+{{count}} lagi sedang berjalan"
+  },
+  "updates": {
+    "sectionTitle": "Kemas kini",
+    "sectionDescription": "Nexus akan memberitahu peranti ini secara automatik apabila versi baharu tersedia. Anda juga boleh menyemak secara manual pada bila-bila masa.",
+    "checkForUpdates": "Semak kemas kini",
+    "availableTitle": "Kemas kini tersedia",
+    "availableMessage": "Nexus {{version}} sedia untuk dimuat turun (anda menggunakan {{current}}). Versi baharu membawa model yang lebih pantas dan lancar serta pembetulan pepijat.",
+    "download": "Muat turun",
+    "later": "Kemudian",
+    "skipVersion": "Langkau versi ini",
+    "upToDateTitle": "Anda sudah terkini",
+    "upToDateMessage": "Nexus {{version}} ialah versi terkini.",
+    "checkFailedTitle": "Semakan kemas kini gagal",
+    "checkFailedMessage": "Tidak dapat menyemak kemas kini. Semak sambungan internet anda dan cuba lagi."
   }
 }

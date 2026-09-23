@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} در حال دانلود است",
     "titleByModel": "{{name}} در حال دانلود است",
     "extraInProgress": "+{{count}} مورد دیگر در حال انجام"
+  },
+  "updates": {
+    "sectionTitle": "به‌روزرسانی‌ها",
+    "sectionDescription": "Nexus این دستگاه را به‌طور خودکار از انتشار نسخهٔ جدید مطلع می‌کند. می‌توانید هر زمان به‌صورت دستی هم بررسی کنید.",
+    "checkForUpdates": "بررسی به‌روزرسانی",
+    "availableTitle": "به‌روزرسانی در دسترس است",
+    "availableMessage": "نسخهٔ {{version}} Nexus برای دانلود آماده است (نسخهٔ شما {{current}} است). نسخه‌های جدید مدل‌های سریع‌تر و روان‌تر و رفع اشکالات را به همراه دارند.",
+    "download": "دانلود",
+    "later": "بعداً",
+    "skipVersion": "رد کردن این نسخه",
+    "upToDateTitle": "شما به‌روز هستید",
+    "upToDateMessage": "Nexus {{version}} آخرین نسخه است.",
+    "checkFailedTitle": "بررسی به‌روزرسانی ناموفق بود",
+    "checkFailedMessage": "امکان بررسی به‌روزرسانی وجود نداشت. اتصال اینترنت خود را بررسی کنید و دوباره تلاش کنید."
   }
 }

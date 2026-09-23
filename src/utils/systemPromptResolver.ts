@@ -1,6 +1,7 @@
 import type {Pal} from '../types/pal';
 import type {Model} from './types';
 import {generateFinalSystemPrompt} from './palshub-template-parser';
+import {LEGACY_DEFAULT_SYSTEM_PROMPTS, NEXUS_ASSISTANT_IDENTITY} from './chat';
 
 export interface SystemPromptDependencies {
   pal?: Pal | null;
@@ -10,8 +11,13 @@ export interface SystemPromptDependencies {
 /**
  * Resolves the system prompt based on priority:
  * 1. Pal's system prompt (with parameter rendering if needed)
- * 2. Fallback to model's chat template system prompt
- * 3. Empty string if neither exists
+ * 2. Model's chat template system prompt — unless it is blank or one of
+ *    the legacy shipped defaults that made models announce a foreign
+ *    identity (H2O Danube, "Qwen, created by Alibaba Cloud", ...)
+ * 3. The canonical Nexus identity prompt, so the assistant always
+ *    introduces itself as Nexus and never echoes a trained-in model name
+ *    such as BounsiAI — for every model, on every install (including
+ *    models downloaded before this behavior existed).
  */
 export function resolveSystemPrompt(
   dependencies: SystemPromptDependencies,
@@ -28,13 +34,20 @@ export function resolveSystemPrompt(
     }
   }
 
-  // Priority 2: Model's chat template system prompt
-  if (model?.chatTemplate?.systemPrompt) {
-    return model.chatTemplate.systemPrompt;
+  // Priority 2: Model's chat template system prompt.
+  // Blank whitespace and legacy shipped defaults (which taught the model a
+  // foreign identity) are treated as "no custom prompt" and fall through.
+  const templatePrompt = model?.chatTemplate?.systemPrompt;
+  if (
+    templatePrompt &&
+    templatePrompt.trim().length > 0 &&
+    !LEGACY_DEFAULT_SYSTEM_PROMPTS.has(templatePrompt)
+  ) {
+    return templatePrompt;
   }
 
-  // Priority 3: Empty string
-  return '';
+  // Priority 3: Canonical Nexus identity
+  return NEXUS_ASSISTANT_IDENTITY;
 }
 
 type ChatMessage = {role: string; content?: unknown};
@@ -78,8 +91,11 @@ export function assembleMessages(
 }
 
 /**
- * Resolves system prompt and formats it as a system message array
- * Returns empty array if no system prompt is available
+ * Resolves system prompt and formats it as a system message array.
+ * Always returns exactly one leading system message: the resolution
+ * fallback is the non-empty Nexus identity prompt (see
+ * `resolveSystemPrompt`), which guarantees a stable assistant identity
+ * for every model.
  */
 export function resolveSystemMessages(
   dependencies: SystemPromptDependencies,

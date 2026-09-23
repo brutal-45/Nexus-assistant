@@ -15,7 +15,7 @@ import {
 } from 'react-native-gesture-handler';
 
 import {ttsStore, uiStore} from './src/store';
-import {useTheme} from './src/hooks';
+import {useTheme, useUpdateCheck} from './src/hooks';
 import {useDeepLinking} from './src/hooks/useDeepLinking';
 import {Theme} from './src/utils/types';
 
@@ -97,6 +97,10 @@ const App = observer(() => {
       // init() swallows its own errors; catch to satisfy no-floating-promises.
     });
   }, []);
+
+  // Notify already-installed devices when a newer Nexus release exists
+  // (throttled to once a day; silent when up to date or offline).
+  useUpdateCheck();
 
   return (
     <GestureHandlerRootView style={styles.root}>

@@ -3,6 +3,7 @@ import {
   resolveSystemPrompt,
   resolveSystemMessages,
 } from '../systemPromptResolver';
+import {NEXUS_ASSISTANT_IDENTITY} from '../chat';
 import type {Pal} from '../../types/pal';
 import type {Model} from '../types';
 
@@ -89,16 +90,16 @@ describe('systemPromptResolver', () => {
       expect(result).toBe('Model default system prompt');
     });
 
-    it('should return empty string when no pal and no model system prompt', () => {
+    it('should return the Nexus identity when no pal and no model system prompt', () => {
       const result = resolveSystemPrompt({
         pal: null,
         model: null,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe(NEXUS_ASSISTANT_IDENTITY);
     });
 
-    it('should return empty string when model has no chat template', () => {
+    it('should return the Nexus identity when model has no chat template', () => {
       const activeModel: Partial<Model> = {
         chatTemplate: undefined,
       };
@@ -108,7 +109,59 @@ describe('systemPromptResolver', () => {
         model: activeModel as Model,
       });
 
-      expect(result).toBe('');
+      expect(result).toBe(NEXUS_ASSISTANT_IDENTITY);
+    });
+
+    it('should replace legacy shipped defaults with the Nexus identity', () => {
+      const legacyPrompts = [
+        'You are a helpful assistant named H2O Danube3. You are precise, concise, and casual.',
+        'You are a helpful assistant named H2O Danube2. You are precise, concise, and casual.',
+        'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+        'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.',
+        'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+      ];
+
+      for (const systemPrompt of legacyPrompts) {
+        const activeModel: Partial<Model> = {
+          chatTemplate: {
+            systemPrompt,
+            addGenerationPrompt: false,
+            name: '',
+            bosToken: '',
+            eosToken: '',
+            chatTemplate: '',
+          },
+        };
+
+        const result = resolveSystemPrompt({
+          pal: null,
+          model: activeModel as Model,
+        });
+
+        // A model downloaded on an older build must stop announcing the
+        // legacy identity after the app updates.
+        expect(result).toBe(NEXUS_ASSISTANT_IDENTITY);
+      }
+    });
+
+    it('should keep a user-provided custom model system prompt', () => {
+      const activeModel: Partial<Model> = {
+        chatTemplate: {
+          systemPrompt: 'You are a pirate. Arr.',
+          addGenerationPrompt: false,
+          name: '',
+          bosToken: '',
+          eosToken: '',
+          chatTemplate: '',
+        },
+      };
+
+      const result = resolveSystemPrompt({
+        pal: null,
+        model: activeModel as Model,
+      });
+
+      expect(result).toBe('You are a pirate. Arr.');
     });
 
     it('should prioritize pal system prompt over model system prompt', () => {
@@ -154,16 +207,21 @@ describe('systemPromptResolver', () => {
       ]);
     });
 
-    it('should return empty array when system prompt is empty', () => {
+    it('should return the Nexus identity system message when nothing else is configured', () => {
       const result = resolveSystemMessages({
         pal: null,
         model: null,
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        {
+          role: 'system',
+          content: NEXUS_ASSISTANT_IDENTITY,
+        },
+      ]);
     });
 
-    it('should return empty array when system prompt is whitespace only', () => {
+    it('should return the Nexus identity system message when the template prompt is whitespace only', () => {
       const activeModel: Partial<Model> = {
         chatTemplate: {
           systemPrompt: '   \n\t  ',
@@ -180,7 +238,12 @@ describe('systemPromptResolver', () => {
         model: activeModel as Model,
       });
 
-      expect(result).toEqual([]);
+      expect(result).toEqual([
+        {
+          role: 'system',
+          content: NEXUS_ASSISTANT_IDENTITY,
+        },
+      ]);
     });
 
     it('should return system message array for parametrized pal', () => {

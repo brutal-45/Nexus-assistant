@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} בהורדה",
     "titleByModel": "{{name}} בהורדה",
     "extraInProgress": "+{{count}} נוספים בתהליך"
+  },
+  "updates": {
+    "sectionTitle": "עדכונים",
+    "sectionDescription": "Nexus מודיעה למכשיר הזה אוטומטית כשגרסה חדשה זמינה. אפשר גם לבדוק ידנית בכל עת.",
+    "checkForUpdates": "בדיקת עדכונים",
+    "availableTitle": "עדכון זמין",
+    "availableMessage": "גרסה {{version}} של Nexus מוכנה להורדה (ברשותך {{current}}). גרסאות חדשות מביאות מודלים מהירים וחלקים יותר ותיקוני באגים.",
+    "download": "הורדה",
+    "later": "מאוחר יותר",
+    "skipVersion": "דלג על גרסה זו",
+    "upToDateTitle": "הגרסה עדכנית",
+    "upToDateMessage": "Nexus {{version}} היא הגרסה העדכנית.",
+    "checkFailedTitle": "בדיקת העדכון נכשלה",
+    "checkFailedMessage": "לא ניתן היה לבדוק עדכונים. בדוק את חיבור האינטרנט ונסה שוב."
   }
 }

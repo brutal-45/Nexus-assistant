@@ -250,6 +250,41 @@ export async function applyChatTemplate(
   return formattedChat || ' ';
 }
 
+/**
+ * Canonical Nexus assistant identity.
+ *
+ * Applied as the system prompt for every bundled chat template and as the
+ * default for Hugging Face / custom models, so the assistant ALWAYS
+ * introduces itself as "Nexus" instead of whatever name the underlying
+ * model was trained with (Qwen, H2O Danube, BounsiAI, ...). Keep it short —
+ * it is prepended to every turn and small models follow short prompts best.
+ */
+export const NEXUS_ASSISTANT_IDENTITY =
+  'You are Nexus, a private AI assistant that runs fully on your device. ' +
+  'Your name is Nexus: always introduce yourself as Nexus and never claim ' +
+  'or imply any other assistant, app, company, or model name (names like ' +
+  'Qwen, Gemma, Phi, Llama, Danube, SmolLM, DeepSeek, or BounsiAI are only ' +
+  'engine details, never your name). ' +
+  'Reply in the same language the user writes in, including Hindi and other ' +
+  'Indian languages. Be concise, friendly, and clear. You work fully ' +
+  'offline; if asked about live data, explain that you work offline.';
+
+/**
+ * Previous default prompts that shipped in older Nexus builds. Models
+ * downloaded while those builds were installed still carry them in their
+ * persisted chat template; `resolveSystemPrompt` treats an exact match on
+ * any of these as "no custom prompt" and substitutes the Nexus identity,
+ * so already-downloaded models stop announcing the wrong name after the
+ * app updates (no DB migration required).
+ */
+export const LEGACY_DEFAULT_SYSTEM_PROMPTS: ReadonlySet<string> = new Set([
+  'You are a helpful assistant named H2O Danube3. You are precise, concise, and casual.',
+  'You are a helpful assistant named H2O Danube2. You are precise, concise, and casual.',
+  'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+  'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.',
+  'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+]);
+
 export const chatTemplates: Record<string, ChatTemplateConfig> = {
   custom: {
     name: 'custom',
@@ -257,89 +292,78 @@ export const chatTemplates: Record<string, ChatTemplateConfig> = {
     bosToken: '',
     eosToken: '',
     chatTemplate: '',
-    systemPrompt: '',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   danube3: {
     ...Templates.templates.danube2,
     name: 'danube3',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful assistant named H2O Danube3. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   danube2: {
     ...Templates.templates.danube2,
     name: 'danube2',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful assistant named H2O Danube2. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   phi3: {
     ...Templates.templates.phi3,
     name: 'phi3',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   gemmaIt: {
     ...Templates.templates.gemmaIt,
     name: 'gemmaIt',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   chatML: {
     ...Templates.templates.chatML,
     name: 'chatML',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   default: {
     ...Templates.templates.default,
     name: 'default',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   llama3: {
     ...Templates.templates.llama3,
     name: 'llama3',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   llama32: {
     ...Templates.templates.llama32,
     name: 'llama32',
     addGenerationPrompt: true,
-    systemPrompt: '',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   gemmasutra: {
     ...Templates.templates.gemmasutra,
     name: 'gemmasutra',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are a helpful conversational chat assistant. You are precise, concise, and casual.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   qwen2: {
     ...Templates.templates.qwen2,
     name: 'qwen2',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   qwen25: {
     ...Templates.templates.qwen25,
     name: 'qwen25',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are Qwen, created by Alibaba Cloud. You are a helpful assistant.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
   },
   smolLM: {
     name: 'smolLM',
     addGenerationPrompt: true,
-    systemPrompt:
-      'You are Nexus, a private AI assistant that runs fully on-device. Be concise, friendly, and clear; if asked about live data, explain you work offline.',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
     bosToken: '<|im_start|>',
     eosToken: '<|im_end|>',
     addBosToken: false,
@@ -349,7 +373,7 @@ export const chatTemplates: Record<string, ChatTemplateConfig> = {
   smolVLM: {
     name: 'smolVLM',
     addGenerationPrompt: true,
-    systemPrompt: '',
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
     bosToken: '<|im_start|>',
     eosToken: '<|im_end|>',
     addBosToken: false,
@@ -380,7 +404,9 @@ export function getHFDefaultSettings(hfModel: HuggingFaceModel): {
     //chatTemplate: hfModel.specs?.gguf?.chat_template ?? '',
     chatTemplate: '', // At the moment chatTemplate needs to be nunjucks, not jinja2. So by using empty string we force the use of gguf's chat template.
     addGenerationPrompt: true,
-    systemPrompt: '',
+    // Every freshly downloaded HF model starts with the Nexus identity so
+    // it never announces the model's trained-in name (Qwen/BounsiAI/...).
+    systemPrompt: NEXUS_ASSISTANT_IDENTITY,
     name: 'custom',
   };
 

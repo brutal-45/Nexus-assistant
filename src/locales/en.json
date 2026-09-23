@@ -1013,7 +1013,12 @@
         "total": "Total: ",
         "usage": "Usage: "
       },
-      "byteSizes": ["Bytes", "KB", "MB", "GB"]
+      "byteSizes": [
+        "Bytes",
+        "KB",
+        "MB",
+        "GB"
+      ]
     },
     "chatView": {
       "menuItems": {
@@ -1580,5 +1585,19 @@
     "titleByPal": "{{name}} is downloading",
     "titleByModel": "{{name}} is downloading",
     "extraInProgress": "+{{count}} more in progress"
+  },
+  "updates": {
+    "sectionTitle": "Updates",
+    "sectionDescription": "Nexus automatically notifies this device when a new version is available. You can also check manually anytime.",
+    "checkForUpdates": "Check for updates",
+    "availableTitle": "Update available",
+    "availableMessage": "Nexus {{version}} is ready to download (you have {{current}}). New versions bring faster, smoother models and bug fixes.",
+    "download": "Download",
+    "later": "Later",
+    "skipVersion": "Skip this version",
+    "upToDateTitle": "You are up to date",
+    "upToDateMessage": "Nexus {{version}} is the latest version.",
+    "checkFailedTitle": "Update check failed",
+    "checkFailedMessage": "Could not check for updates. Check your internet connection and try again."
   }
 }

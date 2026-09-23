@@ -16,6 +16,12 @@ import {useTheme} from '../../hooks';
 import {createStyles} from './styles';
 import {L10nContext} from '../../utils';
 import {uiStore} from '../../store';
+import {
+  checkForUpdates,
+  presentCheckFailedDialog,
+  presentUpdateDialog,
+  presentUpToDateDialog,
+} from '../../services/updates';
 
 const GithubButtonIcon = ({color}: {color: string}) => (
   <GithubIcon stroke={color} />
@@ -42,6 +48,28 @@ export const AboutScreen: React.FC = () => {
   const [generalFeedback, setGeneralFeedback] = useState('');
   const [usageFrequency, setUsageFrequency] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingUpdates, setIsCheckingUpdates] = useState(false);
+
+  const handleCheckUpdates = async () => {
+    setIsCheckingUpdates(true);
+    try {
+      const result = await checkForUpdates({force: true});
+      if (result.status === 'update-available' && result.latest) {
+        presentUpdateDialog(l10n.updates, result.latest, result.currentVersion);
+      } else if (
+        result.status === 'up-to-date' ||
+        result.status === 'skipped-by-user'
+      ) {
+        presentUpToDateDialog(l10n.updates, result.currentVersion);
+      } else {
+        presentCheckFailedDialog(l10n.updates);
+      }
+    } catch {
+      presentCheckFailedDialog(l10n.updates);
+    } finally {
+      setIsCheckingUpdates(false);
+    }
+  };
 
   React.useEffect(() => {
     const version = DeviceInfo.getVersion();
@@ -122,6 +150,22 @@ export const AboutScreen: React.FC = () => {
                 )
               </Text>
             </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{l10n.updates.sectionTitle}</Text>
+            <Text variant="bodyMedium" style={styles.description}>
+              {l10n.updates.sectionDescription}
+            </Text>
+            <Button
+              mode="outlined"
+              onPress={handleCheckUpdates}
+              loading={isCheckingUpdates}
+              disabled={isCheckingUpdates}
+              style={styles.actionButton}
+              icon={ChevronRightButtonIcon}>
+              {l10n.updates.checkForUpdates}
+            </Button>
           </View>
 
           <View style={styles.section}>

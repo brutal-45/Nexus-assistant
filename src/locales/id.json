@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} sedang mengunduh",
     "titleByModel": "{{name}} sedang mengunduh",
     "extraInProgress": "+{{count}} lainnya sedang berlangsung"
+  },
+  "updates": {
+    "sectionTitle": "Pembaruan",
+    "sectionDescription": "Nexus otomatis memberi tahu perangkat ini saat versi baru tersedia. Kamu juga bisa memeriksa manual kapan saja.",
+    "checkForUpdates": "Periksa pembaruan",
+    "availableTitle": "Pembaruan tersedia",
+    "availableMessage": "Nexus {{version}} siap diunduh (kamu memakai {{current}}). Versi baru menghadirkan model yang lebih cepat dan lancar serta perbaikan bug.",
+    "download": "Unduh",
+    "later": "Nanti",
+    "skipVersion": "Lewati versi ini",
+    "upToDateTitle": "Sudah yang terbaru",
+    "upToDateMessage": "Nexus {{version}} adalah versi terbaru.",
+    "checkFailedTitle": "Pemeriksaan pembaruan gagal",
+    "checkFailedMessage": "Tidak dapat memeriksa pembaruan. Periksa koneksi internetmu dan coba lagi."
   }
 }

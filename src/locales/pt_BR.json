@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} está sendo baixado",
     "titleByModel": "{{name}} está sendo baixado",
     "extraInProgress": "+{{count}} mais em andamento"
+  },
+  "updates": {
+    "sectionTitle": "Atualizações",
+    "sectionDescription": "O Nexus avisa automaticamente este dispositivo quando uma nova versão está disponível. Você também pode verificar manualmente a qualquer momento.",
+    "checkForUpdates": "Verificar atualizações",
+    "availableTitle": "Atualização disponível",
+    "availableMessage": "O Nexus {{version}} está pronto para download (você está na versão {{current}}). Novas versões trazem modelos mais rápidos e suaves e correções de bugs.",
+    "download": "Baixar",
+    "later": "Mais tarde",
+    "skipVersion": "Pular esta versão",
+    "upToDateTitle": "Você está atualizado",
+    "upToDateMessage": "O Nexus {{version}} é a versão mais recente.",
+    "checkFailedTitle": "Falha ao verificar atualizações",
+    "checkFailedMessage": "Não foi possível verificar atualizações. Verifique sua conexão com a internet e tente novamente."
   }
 }

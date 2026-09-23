@@ -186,13 +186,23 @@ export async function getCpuCoreCount(): Promise<number> {
 }
 
 /**
- * Get recommended thread count based on CPU cores
- * Uses 80% of cores for devices with more than 4 cores, otherwise uses all cores
+ * Get recommended thread count based on CPU cores.
+ *
+ * Mobile SoCs are big.LITTLE: inference threads that land on efficiency
+ * cores bottleneck the whole pipeline (token generation is serialized per
+ * layer), which shows up as stutter/"lag". So on >4-core devices we use
+ * ~75% of cores but cap at 6 — typically exactly the performance-core
+ * cluster of modern chips (Snapdragon 8-series, Dimensity 9000, Tensor).
+ * Small devices still use all their cores.
+ *
  * @returns Promise<number> Recommended thread count
  */
 export async function getRecommendedThreadCount(): Promise<number> {
   const cores = await getCpuCoreCount();
-  return cores <= 4 ? cores : Math.floor(cores * 0.8);
+  if (cores <= 4) {
+    return cores;
+  }
+  return Math.min(6, Math.max(4, Math.floor(cores * 0.75)));
 }
 
 /**

@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} se está descargando",
     "titleByModel": "{{name}} se está descargando",
     "extraInProgress": "+{{count}} más en progreso"
+  },
+  "updates": {
+    "sectionTitle": "Actualizaciones",
+    "sectionDescription": "Nexus avisa automáticamente a este dispositivo cuando hay una nueva versión disponible. También puedes comprobarlo manualmente en cualquier momento.",
+    "checkForUpdates": "Buscar actualizaciones",
+    "availableTitle": "Actualización disponible",
+    "availableMessage": "Nexus {{version}} ya está listo para descargar (tienes {{current}}). Las nuevas versiones traen modelos más rápidos y fluidos y correcciones de errores.",
+    "download": "Descargar",
+    "later": "Más tarde",
+    "skipVersion": "Omitir esta versión",
+    "upToDateTitle": "Estás al día",
+    "upToDateMessage": "Nexus {{version}} es la última versión.",
+    "checkFailedTitle": "Error al buscar actualizaciones",
+    "checkFailedMessage": "No se pudo buscar actualizaciones. Revisa tu conexión a internet e inténtalo de nuevo."
   }
 }
