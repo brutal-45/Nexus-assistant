@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} 正在下载",
     "titleByModel": "{{name}} 正在下载",
     "extraInProgress": "另有 {{count}} 个正在进行"
+  },
+  "updates": {
+    "sectionTitle": "更新",
+    "sectionDescription": "当有新版本发布时，Nexus 会自动通知此设备。你也可以随时手动检查。",
+    "checkForUpdates": "检查更新",
+    "availableTitle": "有可用更新",
+    "availableMessage": "Nexus {{version}} 已可下载（你当前使用的是 {{current}}）。新版本带来更快、更流畅的模型以及错误修复。",
+    "download": "下载",
+    "later": "稍后",
+    "skipVersion": "跳过此版本",
+    "upToDateTitle": "已是最新版本",
+    "upToDateMessage": "Nexus {{version}} 是最新版本。",
+    "checkFailedTitle": "检查更新失败",
+    "checkFailedMessage": "无法检查更新。请检查网络连接后重试。"
   }
 }

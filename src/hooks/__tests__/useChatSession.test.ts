@@ -24,7 +24,7 @@ import {
 } from '../../store';
 
 import {l10n} from '../../locales';
-import {assistant} from '../../utils/chat';
+import {assistant, NEXUS_ASSISTANT_IDENTITY} from '../../utils/chat';
 import {ModelOrigin} from '../../utils/types';
 
 const mockAssistant = {
@@ -230,22 +230,34 @@ describe('useChatSession', () => {
   });
 
   test.each([
-    {systemPrompt: undefined, shouldInclude: false, description: 'undefined'},
-    {systemPrompt: '', shouldInclude: false, description: 'empty string'},
-    {systemPrompt: '   ', shouldInclude: false, description: 'whitespace-only'},
+    {
+      systemPrompt: undefined,
+      expected: NEXUS_ASSISTANT_IDENTITY,
+      description: 'undefined prompt (falls back to the Nexus identity)',
+    },
+    {
+      systemPrompt: '',
+      expected: NEXUS_ASSISTANT_IDENTITY,
+      description: 'empty prompt (falls back to the Nexus identity)',
+    },
+    {
+      systemPrompt: '   ',
+      expected: NEXUS_ASSISTANT_IDENTITY,
+      description: 'whitespace-only prompt (falls back to the Nexus identity)',
+    },
     {
       systemPrompt: 'You are a helpful assistant',
-      shouldInclude: true,
+      expected: 'You are a helpful assistant',
       description: 'valid prompt',
     },
     {
       systemPrompt: '  Trimmed prompt  ',
-      shouldInclude: true,
+      expected: '  Trimmed prompt  ',
       description: 'prompt with whitespace',
     },
   ])(
     'should handle system prompt for $description',
-    async ({systemPrompt, shouldInclude}) => {
+    async ({systemPrompt, expected}) => {
       const testModel = {
         ...mockBasicModel,
         id: 'test-model',
@@ -274,17 +286,12 @@ describe('useChatSession', () => {
         await result.current.handleSendPress(textMessage);
       });
 
-      if (shouldInclude && systemPrompt?.trim()) {
-        // Check that a system message was included in the messages passed to completion
-        expect(capturedMessages.some(msg => msg.role === 'system')).toBe(true);
-        const systemMessage = capturedMessages.find(
-          msg => msg.role === 'system',
-        );
-        expect(systemMessage.content).toBe(systemPrompt);
-      } else {
-        // Check that no system message was included
-        expect(capturedMessages.some(msg => msg.role === 'system')).toBe(false);
-      }
+      // Every model guaranteed to carry one system message: a custom
+      // prompt when set, otherwise the canonical Nexus identity so the
+      // assistant never announces a trained-in foreign name.
+      expect(capturedMessages.some(msg => msg.role === 'system')).toBe(true);
+      const systemMessage = capturedMessages.find(msg => msg.role === 'system');
+      expect(systemMessage.content).toBe(expected);
     },
   );
 

@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} завантажується",
     "titleByModel": "{{name}} завантажується",
     "extraInProgress": "+{{count}} ще триває"
+  },
+  "updates": {
+    "sectionTitle": "Оновлення",
+    "sectionDescription": "Nexus автоматично повідомляє цей пристрій про вихід нової версії. Ви також можете перевірити вручну будь-коли.",
+    "checkForUpdates": "Перевірити оновлення",
+    "availableTitle": "Доступне оновлення",
+    "availableMessage": "Nexus {{version}} готовий до завантаження (у вас {{current}}). Нові версії містять швидші й плавніші моделі та виправлення помилок.",
+    "download": "Завантажити",
+    "later": "Пізніше",
+    "skipVersion": "Пропустити цю версію",
+    "upToDateTitle": "У вас найновіша версія",
+    "upToDateMessage": "Nexus {{version}} — найновіша версія.",
+    "checkFailedTitle": "Помилка перевірки оновлень",
+    "checkFailedMessage": "Не вдалося перевірити оновлення. Перевірте підключення до інтернету та повторіть спробу."
   }
 }

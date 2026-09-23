@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}}をダウンロード中",
     "titleByModel": "{{name}}をダウンロード中",
     "extraInProgress": "他に{{count}}件進行中"
+  },
+  "updates": {
+    "sectionTitle": "アップデート",
+    "sectionDescription": "新しいバージョンが公開されると Nexus がこのデバイスに自動でお知らせします。手動でいつでも確認することもできます。",
+    "checkForUpdates": "アップデートを確認",
+    "availableTitle": "アップデートがあります",
+    "availableMessage": "Nexus {{version}} をダウンロードできます（現在のバージョンは {{current}} です）。新しいバージョンでは、より高速で滑らかなモデルとバグ修正が提供されます。",
+    "download": "ダウンロード",
+    "later": "あとで",
+    "skipVersion": "このバージョンをスキップ",
+    "upToDateTitle": "最新の状態です",
+    "upToDateMessage": "Nexus {{version}} が最新バージョンです。",
+    "checkFailedTitle": "アップデートの確認に失敗しました",
+    "checkFailedMessage": "アップデートを確認できませんでした。インターネット接続を確認してもう一度お試しください。"
   }
 }

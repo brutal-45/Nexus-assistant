@@ -1585,5 +1585,19 @@
     "titleByPal": "{{name}} загружается",
     "titleByModel": "{{name}} загружается",
     "extraInProgress": "+{{count}} в очереди"
+  },
+  "updates": {
+    "sectionTitle": "Обновления",
+    "sectionDescription": "Nexus автоматически уведомляет это устройство о выходе новой версии. Также можно проверить вручную в любое время.",
+    "checkForUpdates": "Проверить обновления",
+    "availableTitle": "Доступно обновление",
+    "availableMessage": "Nexus {{version}} готов к загрузке (у вас {{current}}). Новые версии содержат более быстрые и плавные модели и исправления ошибок.",
+    "download": "Скачать",
+    "later": "Позже",
+    "skipVersion": "Пропустить эту версию",
+    "upToDateTitle": "У вас последняя версия",
+    "upToDateMessage": "Nexus {{version}} — последняя версия.",
+    "checkFailedTitle": "Ошибка проверки обновлений",
+    "checkFailedMessage": "Не удалось проверить обновления. Проверьте подключение к интернету и повторите попытку."
   }
 }
