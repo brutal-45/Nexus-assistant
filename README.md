@@ -5,7 +5,7 @@
 
 **A private AI assistant that runs entirely on your phone. Chat with language models fully on-device — no server, no account, no data leaving the device.**
 
-iOS + Android · Built on the MIT-licensed [PocketPal AI](https://github.com/a-ghorbani/pocketpal-ai) (React Native + llama.cpp via `llama.rn`)
+iOS + Android · Built on the MIT-licensed [PocketPal AI](https://github.com/brutal-45/Nexus-assistant) (React Native + llama.cpp via `llama.rn`)
 </div>
 
 ---
