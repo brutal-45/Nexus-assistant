@@ -4,15 +4,18 @@
  * 1.0.0, so release payloads are built relative to that.
  */
 
+import {Linking} from 'react-native';
 import DeviceInfo from 'react-native-device-info';
 
 import {
   checkForUpdates,
   compareVersions,
   fetchLatestRelease,
+  pickApkAssetUrl,
   pickAssetUrl,
   presentUpdateDialog,
   skipVersion,
+  startDirectUpdate,
 } from '../updates';
 import {safeAlert} from '../../utils/safeAlert';
 
@@ -50,6 +53,11 @@ const updateStrings = {
   upToDateMessage: 'Nexus {{version}} is the latest version.',
   checkFailedTitle: 'Update check failed',
   checkFailedMessage: 'Could not check for updates.',
+  downloadStartedTitle: 'Downloading update',
+  downloadStartedMessage: 'Nexus {{version}} is downloading.',
+  installPermissionTitle: 'Allow app installs',
+  installPermissionMessage: 'Let Nexus install apps once.',
+  installPermissionOpenSettings: 'Open settings',
 };
 
 const releasePayload = (tag: string, assets: any[] = []) => ({
@@ -121,6 +129,37 @@ describe('pickAssetUrl', () => {
   });
 });
 
+describe('pickApkAssetUrl', () => {
+  const assets = [
+    {
+      name: 'Nexus-v1.1.0.aab',
+      browser_download_url: 'https://example/Nexus.aab',
+    },
+    {
+      name: 'Nexus-v1.1.0.apk',
+      browser_download_url: 'https://example/Nexus.apk',
+    },
+    {
+      name: 'Nexus-v1.1.0.ipa',
+      browser_download_url: 'https://example/Nexus.ipa',
+    },
+  ];
+
+  it('returns the apk asset url regardless of test platform', () => {
+    expect(pickApkAssetUrl(assets)).toBe('https://example/Nexus.apk');
+  });
+
+  it('is undefined when no apk asset is attached', () => {
+    expect(pickApkAssetUrl([assets[0], assets[2]])).toBeUndefined();
+    expect(pickApkAssetUrl([])).toBeUndefined();
+    expect(pickApkAssetUrl(undefined)).toBeUndefined();
+  });
+
+  it('ignores apk entries without a download url', () => {
+    expect(pickApkAssetUrl([{name: 'Nexus.apk'}])).toBeUndefined();
+  });
+});
+
 describe('fetchLatestRelease', () => {
   it('parses the tag and chooses the asset', async () => {
     mockFetchRelease(
@@ -151,6 +190,20 @@ describe('fetchLatestRelease', () => {
   it('returns null on non-OK responses', async () => {
     mockFetchRelease({ok: false, json: async () => ({})});
     await expect(fetchLatestRelease()).resolves.toBeNull();
+  });
+
+  it('exposes apkAssetUrl when the release attaches an APK', async () => {
+    mockFetchRelease(
+      releasePayload('v1.1.0', [
+        {
+          name: 'Nexus-v1.1.0.apk',
+          browser_download_url: 'https://example/Nexus.apk',
+        },
+      ]),
+    );
+
+    const latest = await fetchLatestRelease();
+    expect(latest?.apkAssetUrl).toBe('https://example/Nexus.apk');
   });
 });
 
@@ -251,5 +304,51 @@ describe('presentUpdateDialog', () => {
 
     const result = await checkForUpdates();
     expect(result.status).not.toBe('update-available');
+  });
+
+  it('starts the direct update when Download is pressed', async () => {
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(true as never);
+
+    presentUpdateDialog(
+      updateStrings,
+      {
+        version: '1.1.0',
+        downloadUrl: 'https://example/Nexus.apk',
+        apkAssetUrl: 'https://example/Nexus.apk',
+        releasePageUrl: 'https://example/release',
+      },
+      CURRENT_VERSION,
+    );
+    const [, , buttons] = (safeAlert as jest.Mock).mock.calls[0];
+    await buttons[2].onPress?.();
+
+    // Under the iOS jest platform the module is absent, so the direct path
+    // degrades to the browser with the same url.
+    expect(openURL).toHaveBeenCalledWith('https://example/Nexus.apk');
+    openURL.mockRestore();
+  });
+});
+
+describe('startDirectUpdate', () => {
+  it('falls back to the browser flow when no apk asset is attached', async () => {
+    const openURL = jest
+      .spyOn(Linking, 'openURL')
+      .mockResolvedValue(true as never);
+
+    await startDirectUpdate(updateStrings, {
+      version: '1.1.0',
+      downloadUrl: 'https://example/release',
+      releasePageUrl: 'https://example/release',
+    });
+
+    expect(openURL).toHaveBeenCalledWith('https://example/release');
+    expect(safeAlert).not.toHaveBeenCalledWith(
+      'Downloading update',
+      expect.anything(),
+      expect.anything(),
+    );
+    openURL.mockRestore();
   });
 });

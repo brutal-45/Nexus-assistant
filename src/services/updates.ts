@@ -1,12 +1,18 @@
 /**
  * UpdateService — lets already-installed ("downloaded") devices know when a
- * newer Nexus build is available.
+ * newer Nexus build is available and updates them in place.
  *
  * The app checks the GitHub Releases feed of this repository for the latest
  * published release and compares it against the running app version. When a
- * newer version exists, a dialog offers a one-tap download link (APK on
- * Android, IPA on iOS — falling back to the release page when no matching
- * asset is attached yet).
+ * newer version exists, a dialog offers a one-tap update:
+ * - Android + an attached APK asset → the APK downloads inside the app
+ *   (system DownloadManager, progress in the notification shade) and the
+ *   package installer opens automatically when it finishes. Android's
+ *   "Install unknown apps" permission is requested with a settings deep
+ *   link on first use.
+ * - Everything else (iOS, missing APK asset, native module unavailable,
+ *   download can't be queued) → the old behavior: open the release
+ *   page/asset in the browser.
  *
  * Behavior is deliberately quiet:
  * - Automatic checks happen at most once every 24 hours and say nothing
@@ -21,6 +27,7 @@ import {Linking, Platform} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import DeviceInfo from 'react-native-device-info';
 
+import NativeAppUpdate from '../specs/NativeAppUpdate';
 import {hfUserAgent} from '../utils/hfUserAgent';
 import {safeAlert} from '../utils/safeAlert';
 
@@ -44,6 +51,11 @@ export interface UpdateStrings {
   upToDateMessage: string;
   checkFailedTitle: string;
   checkFailedMessage: string;
+  downloadStartedTitle: string;
+  downloadStartedMessage: string;
+  installPermissionTitle: string;
+  installPermissionMessage: string;
+  installPermissionOpenSettings: string;
 }
 
 export interface LatestRelease {
@@ -53,6 +65,12 @@ export interface LatestRelease {
   downloadUrl: string;
   /** Human-readable release page. */
   releasePageUrl: string;
+  /**
+   * Direct `.apk` asset URL, present only when the release actually
+   * attaches one. Required for the in-app (direct) update path on Android;
+   * when absent the flow falls back to the browser.
+   */
+  apkAssetUrl?: string;
 }
 
 export type UpdateCheckStatus =
@@ -124,6 +142,21 @@ export const pickAssetUrl = (
   return match?.browser_download_url ?? fallbackUrl;
 };
 
+/**
+ * Direct URL of the attached `.apk` asset, or undefined when the release
+ * has none. Platform-independent — it is the caller's job to only use this
+ * on Android.
+ */
+export const pickApkAssetUrl = (
+  assets: Array<{name?: string; browser_download_url?: string}> | undefined,
+): string | undefined =>
+  assets?.find(
+    asset =>
+      (asset.name ?? '').toLowerCase().endsWith('.apk') &&
+      typeof asset.browser_download_url === 'string' &&
+      asset.browser_download_url.length > 0,
+  )?.browser_download_url;
+
 /** Fetch the latest published release from GitHub (null on any failure). */
 export const fetchLatestRelease = async (): Promise<LatestRelease | null> => {
   const controller = new AbortController();
@@ -151,11 +184,16 @@ export const fetchLatestRelease = async (): Promise<LatestRelease | null> => {
         ? data.html_url
         : LATEST_RELEASE_PAGE_URL;
 
-    return {
+    const latest: LatestRelease = {
       version: tag.replace(/^[vV]/, ''),
       downloadUrl: pickAssetUrl(data?.assets, releasePageUrl),
       releasePageUrl,
     };
+    const apkAssetUrl = pickApkAssetUrl(data?.assets);
+    if (apkAssetUrl) {
+      latest.apkAssetUrl = apkAssetUrl;
+    }
+    return latest;
   } catch {
     return null;
   } finally {
@@ -233,6 +271,69 @@ export const checkForUpdates = async (
   return {status: 'update-available', currentVersion, latest};
 };
 
+/** Old-path fallback: hand the update to the system browser. */
+const openUpdateInBrowser = async (latest: LatestRelease): Promise<void> => {
+  try {
+    await Linking.openURL(latest.downloadUrl);
+  } catch {
+    await Linking.openURL(latest.releasePageUrl).catch(() => {});
+  }
+};
+
+/** Ask once for Android's "Install unknown apps" permission for Nexus. */
+export const presentInstallPermissionDialog = (
+  strings: UpdateStrings,
+): void => {
+  safeAlert(strings.installPermissionTitle, strings.installPermissionMessage, [
+    {text: strings.later, style: 'cancel'},
+    {
+      text: strings.installPermissionOpenSettings,
+      onPress: () => {
+        NativeAppUpdate?.openInstallPermissionSettings().catch(() => {});
+      },
+    },
+  ]);
+};
+
+/**
+ * One-tap update, "like other apps": on Android the APK downloads inside
+ * the app (progress lives in the notification shade) and the installer
+ * opens automatically when it finishes. Every non-Android or failure case
+ * degrades to the browser flow, so the user can never get stuck.
+ */
+export const startDirectUpdate = async (
+  strings: UpdateStrings,
+  latest: LatestRelease,
+): Promise<void> => {
+  if (Platform.OS !== 'android' || !NativeAppUpdate || !latest.apkAssetUrl) {
+    await openUpdateInBrowser(latest);
+    return;
+  }
+
+  try {
+    if (!(await NativeAppUpdate.canInstallPackages())) {
+      presentInstallPermissionDialog(strings);
+      return;
+    }
+    await NativeAppUpdate.downloadAndInstall(
+      latest.apkAssetUrl,
+      `Nexus-v${latest.version}.apk`,
+    );
+    safeAlert(
+      strings.downloadStartedTitle,
+      renderTemplate(strings.downloadStartedMessage, {
+        version: latest.version,
+      }),
+    );
+  } catch (error) {
+    console.warn(
+      'In-app update failed; falling back to the browser flow:',
+      error,
+    );
+    await openUpdateInBrowser(latest);
+  }
+};
+
 /** Show the "Update available" dialog with Download / Skip / Later. */
 export const presentUpdateDialog = (
   strings: UpdateStrings,
@@ -257,9 +358,7 @@ export const presentUpdateDialog = (
       {
         text: strings.download,
         onPress: () => {
-          Linking.openURL(latest.downloadUrl).catch(() =>
-            Linking.openURL(latest.releasePageUrl).catch(() => {}),
-          );
+          startDirectUpdate(strings, latest).catch(() => {});
         },
       },
     ],

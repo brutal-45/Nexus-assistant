@@ -11,6 +11,10 @@
     <!-- Permissions -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Lets the in-app updater hand the downloaded APK to the package
+         installer. Runtime-gated per app on Android 8+ ("Install unknown
+         apps"); declared only, nothing is requested until an update. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <!-- Needed only for devices running Android 9 (API 28) or lower -->
     <!-- Currently used for storing chat sessions (/Download) -->
@@ -61,6 +65,18 @@
             <data android:scheme="nexus" android:host="checkout" />
         </intent-filter>
       </activity>
+
+        <!-- Exposes the downloaded update APK (app-private updates/ dir) to
+             the system package installer for the in-app update flow. -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
 
         <!-- Optional native library for OpenCL (GPU acceleration) -->
         <uses-native-library

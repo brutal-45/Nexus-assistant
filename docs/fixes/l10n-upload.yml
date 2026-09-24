@@ -1,0 +1,57 @@
+name: L10n Upload (source strings → Weblate)
+
+# Keeps the translation platform in sync with the English source strings.
+#
+# What runs here
+# 1. `scripts/validate-l10n.js` — validates en.json parses, and that every
+#    integration language has the same keys/placeholders. Always runs; fails
+#    the workflow if a string breaks translation.
+# 2. `scripts/sync-weblate.js upload` — pushes src/locales/en.json to Weblate
+#    (project per `.weblate`). Runs only when the repo holds a `WEBLATE_TOKEN`
+#    secret; otherwise it logs and exits 0.
+#
+# Trigger: a push to master that changes src/locales/en.json (or manual).
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'src/locales/en.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  upload-source-strings:
+    runs-on: ubuntu-latest
+    env:
+      RNLLAMA_SKIP_POSTINSTALL: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.0'
+
+      - name: Validate source strings
+        run: node scripts/validate-l10n.js
+
+      # validate-l10n.js and sync-weblate.js bring their own runtime-only
+      # deps, but axios (used by sync-weblate.js) is a project dependency,
+      # so install to make the upload step self-contained.
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Upload en.json to Weblate
+        env:
+          WEBLATE_TOKEN: ${{ secrets.WEBLATE_TOKEN }}
+          WEBLATE_API_URL: ${{ vars.WEBLATE_API_URL }}
+          WEBLATE_PROJECT: ${{ vars.WEBLATE_PROJECT }}
+          WEBLATE_COMPONENT: ${{ vars.WEBLATE_COMPONENT }}
+        # sync-weblate.js exits 0 with a notice when WEBLATE_TOKEN is empty,
+        # so this is safe on forks / before the secret is set.
+        run: node scripts/sync-weblate.js upload

@@ -12,6 +12,7 @@ import com.facebook.react.defaults.DefaultReactHost.getDefaultReactHost
 import com.facebook.react.defaults.DefaultReactNativeHost
 import com.facebook.react.soloader.OpenSourceMergedSoMapping
 import com.facebook.soloader.SoLoader
+import com.pocketpal.AppUpdatePackage
 import com.pocketpal.KeepAwakePackage
 import com.pocketpal.HardwareInfoPackage
 import com.pocketpal.StorefrontPackage
@@ -29,6 +30,7 @@ class MainApplication : Application(), ReactApplication {
               // add(MyReactNativePackage())
               add(KeepAwakePackage())
               add(HardwareInfoPackage())
+              add(AppUpdatePackage())
               add(StorefrontPackage())
               add(AuthSessionPackage())
               add(ExternalContentLinkPackage())
