@@ -1,0 +1,22 @@
+# ⚠️ WORKFLOW DISABLED — retained only as a reference copy.
+#
+# This file is intentionally inert:
+#   * It has no `on:` trigger, so GitHub Actions NEVER schedules it.
+#   * The live `android-release.yml` was removed from .github/workflows/.
+#
+# Why it is disabled
+#   Stale, broken duplicate of the working `.github/workflows/release.yml`.
+#   Both are named "Android Release (APK + AAB)" and both trigger on the same
+#   `v*` tag push, producing two overlapping runs. This one also:
+#     * built outdated, un-flavored Gradle targets `assembleRelease`/
+#       `bundleRelease`, which no longer exist once product flavors (prod/e2e)
+#       were added — a guaranteed "Build release APK + AAB" failure;
+#     * used Node 18 while the app requires Node 22 (its "Install JS
+#       dependencies" step was the first thing to fail at v1.18.1);
+#     * skipped the .env / google-services.json setup the real build now
+#       requires, and used non-flavored output paths (app-release.apk /
+#       app-release.aab instead of app-prod-release.apk/-aab).
+#
+# The single source of truth for the APK + AAB release is
+#   .github/workflows/release.yml
+# Resurrect a second Android workflow by adapting release.yml, not this file.
