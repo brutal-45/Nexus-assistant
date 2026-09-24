@@ -20,7 +20,7 @@ This repository is a **white-labeled fork** of PocketPal AI. Store-facing identi
 | Android `applicationId` (Play Store ID) | `com.nexusai.nexus` |
 | iOS bundle ID | `com.nexusai.nexus` |
 | Deep-link scheme | `nexus://` |
-| Version | `1.18.0` (build 5) |
+| Version | `1.18.1` (build 6) |
 
 > **Before releasing:** search-and-replace the placeholder brand — `Nexus`, `nexus-app`, `com.nexusai.nexus`, `nexus://` — with your real brand. All identity tokens are centralized (see table in *Identity Map* below).
 
@@ -71,16 +71,16 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 
 #### iOS application file (`.ipa`) via CI
 
-A ready-made workflow ships at `release/ios-release.yml`: it archives the
-app on a macOS runner and attaches `Nexus-<tag>.ipa` to the same GitHub
-Release as the Android APK/AAB for every version tag (`v*`). **Activate it
-with one move** (the automation token that added it may not write under
-`.github/workflows/`):
+A ready-made Apple release job lives at `release/ios-release.yml`. GitHub
+only runs workflows from `.github/workflows/`, so activate it with:
 
 ```bash
 git mv release/ios-release.yml .github/workflows/ios-release.yml
 git commit -m "chore(ci): activate iOS release workflow" && git push
 ```
+
+Once active, every version tag (`v*`) attaches `Nexus-<tag>.ipa` to the
+same GitHub Release as the Android APK/AAB.
 
 The built IPA is **unsigned** (built with `CODE_SIGNING_ALLOWED=NO` because
 distribution certificates live outside this repo) and installs on real
@@ -109,7 +109,7 @@ version if they prefer not to be reminded of it again.
 - `android/app/src/main/res/values/strings.xml` → `app_name`
 - `android/app/src/main/AndroidManifest.xml` → deep-link schemes → `nexus://`
 - `ios/PocketPal/Info.plist` → `CFBundleDisplayName` / `CFBundleName` / URL scheme
-- `ios/PocketPal.xcodeproj/project.pbxproj` → `PRODUCT_BUNDLE_IDENTIFIER` (+ tests target), `MARKETING_VERSION 1.18.0`, `CURRENT_PROJECT_VERSION 5`
+- `ios/PocketPal.xcodeproj/project.pbxproj` → `PRODUCT_BUNDLE_IDENTIFIER` (+ tests target), `MARKETING_VERSION 1.18.1`, `CURRENT_PROJECT_VERSION 6`
 - `ios/PocketPal/PocketPal.entitlements` → keychain group re-scoped to new bundle ID
 - All `pocketpal://` deep-link routes in JS/Kotlin/Swift (parser: `src/services/hubRunLink.ts`; checkout callback scheme in `src/store/CheckoutFlowStore.ts`; Siri intents in `ios/PocketPal/AppIntents/`)
 - Root component name aligned with `app.json`: `MainActivity.getMainComponentName()` (Android) and `AppDelegate.startReactNative(withModuleName:)` (iOS) → `Nexus`
@@ -145,9 +145,9 @@ Users never see any of the above; changing them is optional hygiene (see the [wh
 
 | Workflow | Trigger | Produces |
 |---|---|---|
-| `Android Release` | push tag `v*` or manual run | Signed **APK + AAB** attached to a GitHub Release |
+| `Android Release (APK + AAB)` (`release.yml`) | push tag `v*` or manual run | Signed **APK + AAB** attached to a GitHub Release |
+| `iOS Release (IPA)` (`release/ios-release.yml`) | push tag `v*` once moved into `.github/workflows/` | Unsigned **IPA** attached to the same GitHub Release |
 | `Model Release` | manual run (version input) | **Model pack** attached to a GitHub Release |
-| `release.yml` (upstream) | tag | Play Store lane via fastlane (needs service-account secret) |
 
 **APK release flow:** push a tag → Actions builds → Release page gets `Nexus-vX.Y.Z.apk`:
 

@@ -24,6 +24,7 @@ import {
   resolveSystemMessages,
 } from '../utils/systemPromptResolver';
 import {convertToChatMessages, removeThinkingParts} from '../utils/chat';
+import {sanitizeAssistantIdentity} from '../utils/assistantIdentity';
 import {activateKeepAwake, deactivateKeepAwake} from '../utils/keepAwake';
 import {
   toApiCompletionParams,
@@ -336,7 +337,9 @@ async function applyEventToStore(
       // anyway, but the slice math is the residual per-token cost.
       if (ctx.tts.enabled) {
         try {
-          const cumulativeContent = event.delta.content ?? ctx.tts.prevContent;
+          const cumulativeContent = sanitizeAssistantIdentity(
+            event.delta.content ?? ctx.tts.prevContent,
+          );
           const cumulativeReasoning =
             event.delta.reasoningContent ?? ctx.tts.prevReasoning;
           if (
@@ -376,7 +379,9 @@ async function applyEventToStore(
       // appendToolCall so ids match outcomes by construction.
       const partial: Partial<MessageType.AssistantTurn['steps'][number]> = {};
       if (event.delta.content) {
-        partial.content = event.delta.content.replace(/^\s+/, '');
+        partial.content = sanitizeAssistantIdentity(
+          event.delta.content.replace(/^\s+/, ''),
+        );
       }
       if (event.delta.reasoningContent) {
         partial.reasoningContent = event.delta.reasoningContent;
@@ -423,21 +428,27 @@ async function applyEventToStore(
       // (not in the runner) because timings are an observability
       // concern of the hook, not the runner.
       const finalResult = event.result.finalResult;
+      const sanitizedResult = {
+        ...finalResult,
+        content: sanitizeAssistantIdentity(finalResult.content ?? ''),
+        text: sanitizeAssistantIdentity(finalResult.text ?? ''),
+      };
       const snapshot = deriveSnapshotFromResult(
-        finalResult,
+        sanitizedResult,
         modelStore.activeModel?.origin === ModelOrigin.REMOTE,
       );
       const draftTimings =
-        finalResult.draft_tokens != null && finalResult.draft_tokens > 0
+        sanitizedResult.draft_tokens != null &&
+        sanitizedResult.draft_tokens > 0
           ? {
-              draft_tokens: finalResult.draft_tokens,
-              draft_tokens_accepted: finalResult.draft_tokens_accepted,
+              draft_tokens: sanitizedResult.draft_tokens,
+              draft_tokens_accepted: sanitizedResult.draft_tokens_accepted,
             }
           : {};
       await chatSessionStore.updateMessage(ctx.messageId, ctx.sessionId, {
         metadata: {
           timings: {
-            ...(finalResult.timings ?? {}),
+            ...(sanitizedResult.timings ?? {}),
             time_to_first_token_ms: ctx.timeToFirstTokenMs.value,
             ...draftTimings,
           },
@@ -459,8 +470,8 @@ async function applyEventToStore(
       try {
         ttsStore.onAssistantMessageComplete(
           ctx.messageId,
-          finalResult.text ?? '',
-          {hadReasoning: !!finalResult.reasoning_content?.trim()},
+          sanitizedResult.text ?? '',
+          {hadReasoning: !!sanitizedResult.reasoning_content?.trim()},
         );
       } catch (ttsErr) {
         console.warn('[useChatSession] TTS complete hook failed:', ttsErr);
@@ -656,7 +667,7 @@ export const useChatSession = (
       // can grow on fast models; the abort guard below drops queued
       // token events on stop while lifecycle events still run.
       let lastYieldTs = performance.now();
-      const YIELD_INTERVAL_MS = 100;
+      const YIELD_INTERVAL_MS = 50;
 
       // Bucket the tool-token counter: PendingIndicator hides counts
       // below 10, so publish every increment up to 10, then only on
