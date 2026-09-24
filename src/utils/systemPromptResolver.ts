@@ -1,7 +1,10 @@
 import type {Pal} from '../types/pal';
 import type {Model} from './types';
 import {generateFinalSystemPrompt} from './palshub-template-parser';
-import {LEGACY_DEFAULT_SYSTEM_PROMPTS, NEXUS_ASSISTANT_IDENTITY} from './chat';
+import {
+  isShippedDefaultSystemPrompt,
+  NEXUS_ASSISTANT_IDENTITY,
+} from './assistantIdentity';
 
 export interface SystemPromptDependencies {
   pal?: Pal | null;

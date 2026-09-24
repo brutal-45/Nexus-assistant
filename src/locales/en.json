@@ -1598,6 +1598,11 @@
     "upToDateTitle": "You are up to date",
     "upToDateMessage": "Nexus {{version}} is the latest version.",
     "checkFailedTitle": "Update check failed",
-    "checkFailedMessage": "Could not check for updates. Check your internet connection and try again."
+    "checkFailedMessage": "Could not check for updates. Check your internet connection and try again.",
+    "downloadStartedTitle": "Downloading update",
+    "downloadStartedMessage": "Nexus {{version}} is downloading. You will be asked to install it as soon as the download finishes.",
+    "installPermissionTitle": "Allow app installs",
+    "installPermissionMessage": "To update Nexus without leaving the app, allow Nexus to install apps once (Android setting). You can turn this off again after updating.",
+    "installPermissionOpenSettings": "Open settings"
   }
 }
