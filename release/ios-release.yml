@@ -1,18 +1,26 @@
 name: iOS Release (IPA)
 
+# STAGED COPY — this file proposes improvements over the active workflow in
+# .github/workflows/ios-release.yml. A maintainer with the `workflows`
+# permission can activate it with:
+#
+#     cp release/ios-release.yml .github/workflows/ios-release.yml
+#
+# Improvements over the active copy:
+# - Manual dispatch supports an optional `tag` input: when set, the built
+#   IPA is attached to that EXISTING release (e.g. re-shipping the iOS
+#   package after a failed tag run) instead of creating a release from the
+#   branch ref. Example:
+#
+#       gh workflow run "iOS Release (IPA)" --ref <branch> -f tag=v1.18.2
+#
+# - The Package IPA step also searches the fallback device-build output dir.
+#
 # Builds the Nexus iOS app and publishes an installable .ipa to GitHub
 # Releases, alongside the APK/AAB produced by the Android workflow.
 # Trigger: push a version tag (v1.18.0) or run manually from the Actions tab.
 #
-# NOTE — INSTALLATION REQUIRED (one manual step)
-# This file is not active where it sits: GitHub only runs workflows from
-# .github/workflows/. Copy or move it into place:
-#
-#     git mv release/ios-release.yml .github/workflows/ios-release.yml
-#     git commit -m "chore(ci): activate iOS release workflow"
-#     git push
-#
-# What it produces once active
+# What it produces
 #   Nexus-<tag>.ipa — an *unsigned* release IPA (payload packed from an
 #   xcarchive built with CODE_SIGNING_ALLOWED=NO). It can be installed on
 #   real Apple devices with sideloading tools such as AltStore, Sideloadly
@@ -30,6 +38,11 @@ on:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Attach the IPA to this existing release tag (e.g. v1.18.2). Leave empty to release from the current ref.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -188,12 +201,15 @@ jobs:
           fi
 
       - name: Package IPA
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          VERSION="${GITHUB_REF_NAME:-manual}"
+          VERSION="${RELEASE_TAG:-manual}"
           # .app folder name comes from the target product name (PocketPal,
           # kept build-internal by design — see README Identity Map).
-          APP_PATH=$(find ios/build/Nexus.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
-          test -n "$APP_PATH" || { echo "::error::No .app in archive"; exit 1; }
+          # Search the archive first, then the fallback device-build output.
+          APP_PATH=$(find ios/build/Nexus.xcarchive/Products/Applications ios/build/Build/Products/Release-iphoneos -maxdepth 1 -name '*.app' -print -quit 2>/dev/null)
+          test -n "$APP_PATH" || { echo "::error::No .app in archive or fallback build dir"; exit 1; }
           rm -rf Payload && mkdir -p Payload
           cp -R "$APP_PATH" Payload
           # An .ipa is a zip of a top-level Payload/ directory.
@@ -209,7 +225,8 @@ jobs:
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
           draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          prerelease: ${{ contains(inputs.tag || github.ref_name, '-') }}
           files: |
             Nexus-*.ipa
