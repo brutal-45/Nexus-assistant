@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- FileProvider share targets. `updates/` holds the APK downloaded by the
+     in-app updater before the package installer consumes it; `app_files`
+     exists for future FileProvider users so paths aren't widened later. -->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <external-files-path name="updates" path="updates/" />
+    <files-path name="app_files" path="." />
+</paths>

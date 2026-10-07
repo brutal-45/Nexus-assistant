@@ -1,0 +1,139 @@
+default_platform :android
+
+desc "Bump version for both Android and iOS"
+lane :bump_version do |options|
+  version_type = options[:version_type] || "patch"
+  root_dir = File.expand_path('..', Dir.pwd)
+  
+  # Common paths
+  package_json_path = File.join(root_dir, 'package.json')
+  version_file_path = File.join(root_dir, '.version')
+
+  # Bump version in package.json
+  Dir.chdir(root_dir) do
+    sh("yarn version --#{version_type} --no-git-tag-version")
+  end
+  
+  new_version = JSON.parse(File.read(package_json_path))['version']
+  sh("echo #{new_version} > #{version_file_path}")
+
+  # For Android: Read current version code and increment it
+  gradle_file = File.join(root_dir, "android/app/build.gradle")
+  current_version_code = android_get_version_code(gradle_file: gradle_file).to_i
+  new_version_code = current_version_code + 1
+
+  # Update Android version
+  android_set_version_code(
+    gradle_file: gradle_file,
+    version_code: new_version_code
+  )
+  
+  android_set_version_name(
+    gradle_file: gradle_file,
+    version_name: new_version
+  )
+
+  # For iOS: Bump version and build number
+  ios_dir = File.join(root_dir, 'ios')
+  Dir.chdir(ios_dir) do
+    increment_version_number_in_xcodeproj(
+      version_number: new_version,
+      xcodeproj: File.join(ios_dir, "PocketPal.xcodeproj")
+    )
+    increment_build_number_in_xcodeproj(
+      xcodeproj: File.join(ios_dir, "PocketPal.xcodeproj")
+    )
+  end
+
+  UI.message("Bumped versions:")
+  UI.message("- Version name: #{new_version}")
+  UI.message("- Android version code: #{new_version_code}")
+  UI.message("- iOS build number: #{get_build_number_from_xcodeproj(xcodeproj: File.join(ios_dir, 'PocketPal.xcodeproj'))}")
+end
+
+# IMPORTANT — working directory. fastlane chdir()s into the fastlane folder
+# before executing any lane (fastlane/lib/fastlane/runner.rb:
+# `Dir.chdir(FastlaneCore::FastlaneFolder.path)`), so when the release
+# workflow invokes this file from android/, `Dir.pwd` inside a lane is
+# android/fastlane/, NOT android/. Every path below is anchored on that fact.
+
+platform :android do
+  desc "Build the Android release APK and AAB"
+  lane :build_android_release do
+    # android/ project (where gradlew lives), one level above this folder
+    android_dir = File.expand_path('..', Dir.pwd)
+    app_dir = File.join(android_dir, "app")
+
+    # The google-services plugin is applied unconditionally in
+    # android/app/build.gradle, so the file must exist for any build.
+    gs_json = ENV["GOOGLE_SERVICES_JSON"]
+    if gs_json.nil? || gs_json.empty?
+      UI.user_error!(
+        "GOOGLE_SERVICES_JSON is not set. The google-services plugin needs " \
+        "android/app/google-services.json to exist; provide the secret in the " \
+        "workflow environment (repo Settings -> Secrets and variables -> Actions)."
+      )
+    end
+    File.write(File.join(app_dir, "google-services.json"), gs_json)
+
+    # Fail fast with a readable message instead of a gradle cryptic keystore error.
+    %w[KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD].each do |name|
+      if ENV[name].nil? || ENV[name].empty?
+        UI.user_error!("#{name} is required to sign the release build (see .github/workflows/release.yml).")
+      end
+    end
+
+    signing_properties = {
+      "android.injected.signing.store.file" => File.join(app_dir, "nexus-release-key.keystore"),
+      "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+      "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+      "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+    }
+
+    gradle(
+      task: "assemble",
+      flavor: "prod",
+      build_type: "Release",
+      project_dir: android_dir,
+      print_command: false,
+      properties: signing_properties
+    )
+
+    gradle(
+      task: "bundle",
+      flavor: "prod",
+      build_type: "Release",
+      project_dir: android_dir,
+      print_command: false,
+      properties: signing_properties
+    )
+  end
+
+  desc "Upload the built Android bundle to the Alpha track"
+  lane :upload_android_alpha do
+    android_dir = File.expand_path('..', Dir.pwd)
+    root_dir = File.expand_path('..', android_dir)
+
+    aab = File.join(android_dir, "app/build/outputs/bundle/prodRelease/app-prod-release.aab")
+    unless File.exist?(aab)
+      UI.user_error!("Expected release AAB not found at #{aab}. Run the build_android_release lane first.")
+    end
+
+    json_key = File.join(android_dir, "play-store-key.json")
+    unless File.exist?(json_key)
+      UI.user_error!("Play Store service-account key not found at #{json_key} (the workflow writes it from PLAY_STORE_SERVICE_ACCOUNT_JSON).")
+    end
+
+    upload_to_play_store(
+      track: "alpha",
+      package_name: "com.nexusai.nexus",
+      aab: aab,
+      skip_upload_metadata: false,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_apk: true,
+      metadata_path: File.join(root_dir, "fastlane", "metadata", "android"),
+      json_key: json_key
+    )
+  end
+end

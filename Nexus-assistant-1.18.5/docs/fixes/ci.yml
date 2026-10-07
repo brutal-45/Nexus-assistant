@@ -1,0 +1,57 @@
+name: CI
+
+# Static checks. Runs on pull requests and pushes to master / feature
+# branches (but not on release tags — the tag triggers the release
+# workflows instead). Distinct from the manual `E2E Android Build (manual)`
+# workflow: this job is fast lint / typecheck / unit-test / l10n only.
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    tags-ignore:
+      - 'v*'
+    branches:
+      - master
+      - '**'
+
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref to keep the queue short.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-latest
+    env:
+      # llama.rn's postinstall downloads ~100 MB of prebuilt native
+      # libraries; static checks never build or run native code.
+      RNLLAMA_SKIP_POSTINSTALL: '1'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.0'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Validate translations
+        run: yarn l10n:validate
+
+      - name: Unit tests
+        run: yarn test --ci --maxWorkers=2

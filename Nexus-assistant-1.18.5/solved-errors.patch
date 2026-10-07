@@ -1,0 +1,511 @@
+diff --git a/.github/workflows/android-release.yml b/.github/workflows/android-release.yml
+index b4bfeba..34caa1d 100644
+--- a/.github/workflows/android-release.yml
++++ b/.github/workflows/android-release.yml
+@@ -41,12 +41,80 @@ jobs:
+       - name: Set up Node
+         uses: actions/setup-node@v4
+         with:
+-          node-version: '18'
++          node-version: '22.21.0'
+           cache: 'yarn'
+ 
+       - name: Install JS dependencies
+         run: yarn install --frozen-lockfile || yarn install
+ 
++      # android/app/build.gradle applies the google-services plugin
++      # unconditionally, so the file must exist for any build. Start from a
++      # dummy (same pattern as the CI workflow); the next step replaces it
++      # with the real file when the secret is configured.
++      # react-native-dotenv inlines `@env` imports at bundle time from .env.
++      # With no .env the imports compile to `undefined` *silently* — the APK
++      # builds fine but Supabase/PalsHub/auth are dead at runtime. Repo
++      # variables are used when configured, matching release.yml.
++      - name: Create .env file
++        run: |
++          cat > .env << EOL
++          FIREBASE_FUNCTIONS_URL=${{ vars.FIREBASE_FUNCTIONS_URL }}
++
++          # PalsHub/Supabase Configuration
++          SUPABASE_URL=${{ vars.SUPABASE_URL }}
++          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
++          PALSHUB_API_BASE_URL=${{ vars.PALSHUB_API_BASE_URL }}
++
++          # App Configuration
++          APP_URL=nexus://app
++
++          # Feature Flags (true/false)
++          ENABLE_PALSHUB_INTEGRATION=true
++          ENABLE_AUTHENTICATION=true
++          ENABLE_OFFLINE_MODE=true
++
++          # Google Sign-In Configuration
++          GOOGLE_IOS_CLIENT_ID=${{ vars.GOOGLE_IOS_CLIENT_ID }}
++          GOOGLE_WEB_CLIENT_ID=${{ vars.GOOGLE_WEB_CLIENT_ID }}
++          EOL
++          if [ -z "${{ vars.SUPABASE_URL }}" ]; then
++            echo "::warning::SUPABASE_URL repo variable is not set — PalsHub/auth features will be inert in this build."
++          fi
++
++      - name: Create dummy google-services.json
++        run: |
++          cat > android/app/google-services.json << 'EOL'
++          {
++            "project_info": {
++              "project_number": "000000000000",
++              "project_id": "dummy-project-for-ci",
++              "storage_bucket": "dummy-project-for-ci.appspot.com"
++            },
++            "client": [{
++              "client_info": {
++                "mobilesdk_app_id": "1:000000000000:android:0000000000000000",
++                "android_client_info": {
++                  "package_name": "com.nexusai.nexus"
++                }
++              },
++              "api_key": [{
++                "current_key": "dummy-api-key-for-ci-builds"
++              }]
++            }]
++          }
++          EOL
++
++      - name: Use the real google-services.json when the secret is set
++        env:
++          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
++        run: |
++          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
++            printf '%s\n' "$GOOGLE_SERVICES_JSON" > android/app/google-services.json
++            echo "google-services.json written from secret."
++          else
++            echo "::warning::GOOGLE_SERVICES_JSON not set — keeping the dummy file; Firebase features will be non-functional in the built APK/AAB."
++          fi
++
+       - name: Decode release keystore
+         env:
+           KEYSTORE_B64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+@@ -64,16 +132,36 @@ jobs:
+           APP_RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+         run: |
+           cd android
+-          ./gradlew assembleRelease bundleRelease --no-daemon
++          # Unset empty signing vars so build.gradle's release signingConfig
++          # leaves storeFile null and the documented debug-signing fallback
++          # runs. (Empty strings are already falsy in Groovy, so this is
++          # belt-and-braces — it also keeps the log honest about which
++          # signing path was taken.)
++          if [ -z "$APP_RELEASE_STORE_PASSWORD" ] || [ -z "$APP_RELEASE_KEY_PASSWORD" ]; then
++            echo "No signing credentials — release build will be debug-signed."
++            unset APP_RELEASE_STORE_PASSWORD APP_RELEASE_KEY_PASSWORD
++          fi
++          # The app defines product flavors (prod/e2e), so the bare
++          # assembleRelease/bundleRelease tasks do not exist. Pin the prod
++          # flavor — the shipped applicationId — exactly as the release
++          # workflow and CI do.
++          ./gradlew assembleProdRelease bundleProdRelease --no-daemon
+ 
+       - name: Rename artifacts
+         run: |
+           VERSION="${GITHUB_REF_NAME:-manual}"
+-          cp android/app/build/outputs/apk/release/app-release.apk \
++          # Flavored output paths (flavor `prod`, buildType `release` /
++          # `prodRelease` for the bundle):
++          #   app/build/outputs/apk/prod/release/app-prod-release.apk
++          #   app/build/outputs/bundle/prodRelease/app-prod-release.aab
++          # Both are always produced by the build step above, so a missing
++          # file must fail the run rather than be swallowed.
++          set -euo pipefail
++          cp android/app/build/outputs/apk/prod/release/app-prod-release.apk \
+              "Nexus-${VERSION}.apk"
+-          cp android/app/build/outputs/bundle/release/app-release.aab \
+-             "Nexus-${VERSION}.aab" 2>/dev/null || true
+-          ls -lh Nexus-*.apk Nexus-*.aab 2>/dev/null || true
++          cp android/app/build/outputs/bundle/prodRelease/app-prod-release.aab \
++             "Nexus-${VERSION}.aab"
++          ls -lh "Nexus-${VERSION}.apk" "Nexus-${VERSION}.aab"
+ 
+       - name: Publish GitHub Release
+         uses: softprops/action-gh-release@v2
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+index 6e0470f..8995411 100644
+--- a/.github/workflows/ci.yml
++++ b/.github/workflows/ci.yml
+@@ -3,10 +3,10 @@ name: CI Pipeline
+ on:
+   pull_request:
+     branches:
+-      - main
++      - master
+   push:
+     branches:
+-      - main
++      - master
+ 
+ permissions:
+   contents: read
+diff --git a/.github/workflows/l10n-upload.yml b/.github/workflows/l10n-upload.yml
+index 520eafc..c80a8bc 100644
+--- a/.github/workflows/l10n-upload.yml
++++ b/.github/workflows/l10n-upload.yml
+@@ -1,6 +1,6 @@
+ # Weblate Translation Workflow Lifecycle:
+ #
+-# 1. Developer adds/changes English strings in src/locales/en.json, merges PR to main
++# 1. Developer adds/changes English strings in src/locales/en.json, merges PR to master
+ # 2. This workflow auto-uploads en.json to Weblate on merge
+ # 3. Translators work in Weblate UI at https://hosted.weblate.org/translate/pocketpal-ai
+ # 4. Weblate auto-creates a PR with translated files (requires Weblate admin to
+@@ -17,7 +17,7 @@ name: Upload translations to Weblate
+ on:
+   push:
+     branches:
+-      - main
++      - master
+     paths:
+       - 'src/locales/en.json'
+ 
+diff --git a/.github/workflows/release.yml b/.github/workflows/release.yml
+index 63858a9..30fb7c6 100644
+--- a/.github/workflows/release.yml
++++ b/.github/workflows/release.yml
+@@ -241,7 +241,7 @@ jobs:
+ 
+       # Step 11: Create GitHub Release with APK
+       - name: Create GitHub Release
+-        uses: softprops/action-gh-release@v1
++        uses: softprops/action-gh-release@v2
+         with:
+           files: android/app/build/outputs/apk/prod/release/app-prod-release.apk
+           tag_name: "v${{ env.VERSION }}"
+diff --git a/android/fastlane/Fastfile b/android/fastlane/Fastfile
+index b66b59e..bfb8d43 100644
+--- a/android/fastlane/Fastfile
++++ b/android/fastlane/Fastfile
+@@ -1,16 +1,55 @@
+ default_platform :android
+ 
++# IMPORTANT — working directory. fastlane chdir()s into the fastlane folder
++# before executing any lane (fastlane/lib/fastlane/runner.rb:
++# `Dir.chdir(FastlaneCore::FastlaneFolder.path)`), so when the release
++# workflow invokes this file from android/, `Dir.pwd` inside a lane is
++# android/fastlane/, NOT android/. Every path below is anchored on that fact.
++
+ platform :android do
+   desc "Build the Android release APK and AAB"
+   lane :build_android_release do
++    # android/ project (where gradlew lives), one level above this folder
+     android_dir = File.expand_path('..', Dir.pwd)
++    app_dir = File.join(android_dir, "app")
+ 
+-    # Create google-services.json from GitHub secret
+-    File.write(
+-      File.join(android_dir, "app/google-services.json"),
+-      ENV["GOOGLE_SERVICES_JSON"]
+-    )
++    # The google-services plugin is applied unconditionally in
++    # android/app/build.gradle, so the file must exist for any build.
++    gs_json = ENV["GOOGLE_SERVICES_JSON"]
++    if gs_json.nil? || gs_json.empty?
++      UI.user_error!(
++        "GOOGLE_SERVICES_JSON is not set. The google-services plugin needs " \
++        "android/app/google-services.json to exist; provide the secret in the " \
++        "workflow environment (repo Settings -> Secrets and variables -> Actions)."
++      )
++    end
++    File.write(File.join(app_dir, "google-services.json"), gs_json)
++
++    # Fail fast with a readable message instead of a gradle cryptic keystore error.
++    %w[KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD].each do |name|
++      if ENV[name].nil? || ENV[name].empty?
++        UI.user_error!("#{name} is required to sign the release build (see .github/workflows/release.yml).")
++      end
++    end
+ 
++    # Signing is injected through the standard android.injected.* project
++    # properties: they override the variant's signing config regardless of the
++    # build.gradle signingConfigs block. The properties are rendered onto the
++    # gradle command line as -P values, so print_command: false keeps the
++    # passwords out of the echoed command (it would land in android-build.log,
++    # which the payload gate greps). Gradle's own stdout stays on — that is the
++    # only live proof the build ran.
++    signing_properties = {
++      "android.injected.signing.store.file" => File.join(app_dir, "nexus-release-key.keystore"),
++      "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
++      "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
++      "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
++    }
++
++    # project_dir must point at the gradle project (android/): the gradle
++    # action resolves ./gradlew relative to it, and fastlane's chdir into
++    # this folder would otherwise make it look for gradlew in android/fastlane.
++    #
+     # Build APK for GitHub Release.
+     # flavor: "prod" is MANDATORY — task: "assemble" is a gradle meta-task
+     # that, post-flavor, would build both prodRelease AND e2eRelease
+@@ -21,41 +60,39 @@ platform :android do
+       task: "assemble",
+       flavor: "prod",
+       build_type: "Release",
+-      # The properties below are rendered into the command line fastlane echoes
+-      # before running it, and that echo is what put the signing passwords in
+-      # plaintext into android-build.log. Output stays on — the payload check's
+-      # allowlist assertion reads gradle's stdout.
++      project_dir: android_dir,
+       print_command: false,
+-      properties: {
+-        "android.injected.signing.store.file" => File.join(android_dir, "app/nexus-release-key.keystore"),
+-        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+-        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+-        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+-      }
++      properties: signing_properties
+     )
+ 
+-    # Build Bundle for Play Store (same reasoning — pin to prod flavor).
++    # Build Bundle for Play Store (same reasoning — pin to the prod flavor).
++    # Output: android/app/build/outputs/bundle/prodRelease/app-prod-release.aab
+     gradle(
+       task: "bundle",
+       flavor: "prod",
+       build_type: "Release",
+-      # The properties below are rendered into the command line fastlane echoes
+-      # before running it, and that echo is what put the signing passwords in
+-      # plaintext into android-build.log. Output stays on — the payload check's
+-      # allowlist assertion reads gradle's stdout.
++      project_dir: android_dir,
+       print_command: false,
+-      properties: {
+-        "android.injected.signing.store.file" => File.join(android_dir, "app/nexus-release-key.keystore"),
+-        "android.injected.signing.store.password" => ENV["KEYSTORE_PASSWORD"],
+-        "android.injected.signing.key.alias" => ENV["KEY_ALIAS"],
+-        "android.injected.signing.key.password" => ENV["KEY_PASSWORD"]
+-      }
++      properties: signing_properties
+     )
+   end
+ 
+   desc "Upload the built Android bundle to the Alpha track"
+   lane :upload_android_alpha do
+     android_dir = File.expand_path('..', Dir.pwd)
++    root_dir = File.expand_path('..', android_dir)
++
++    aab = File.join(android_dir, "app/build/outputs/bundle/prodRelease/app-prod-release.aab")
++    unless File.exist?(aab)
++      UI.user_error!("Expected release AAB not found at #{aab}. Run the build_android_release lane first.")
++    end
++
++    # The release workflow writes the service-account key into android/
++    # (its `working-directory`), one level above this folder.
++    json_key = File.join(android_dir, "play-store-key.json")
++    unless File.exist?(json_key)
++      UI.user_error!("Play Store service-account key not found at #{json_key} (the workflow writes it from PLAY_STORE_SERVICE_ACCOUNT_JSON).")
++    end
+ 
+     upload_to_play_store(
+       track: "alpha",
+@@ -66,13 +103,14 @@ platform :android do
+       # separate one from this lane's. Its fallback globs do not match this
+       # project's flavored output path, so an absent value uploads the
+       # metadata, no binary, and reports success.
+-      aab: File.join(android_dir, "app/build/outputs/bundle/prodRelease/app-prod-release.aab"),
++      aab: aab,
+       skip_upload_metadata: false,
+       skip_upload_images: true,
+       skip_upload_screenshots: true,
+       skip_upload_apk: true,
+-      metadata_path: File.join(android_dir, "..", "fastlane", "metadata", "android"),
+-      json_key: File.join(android_dir, "play-store-key.json")
++      # The fork keeps its store metadata at the repo root: fastlane/metadata/android
++      metadata_path: File.join(root_dir, "fastlane", "metadata", "android"),
++      json_key: json_key
+     )
+   end
+ end
+diff --git a/ios/fastlane/Fastfile b/ios/fastlane/Fastfile
+index 5aa3055..83daa8b 100644
+--- a/ios/fastlane/Fastfile
++++ b/ios/fastlane/Fastfile
+@@ -1,34 +1,57 @@
+ default_platform :ios
+ 
++# IMPORTANT — working directory. fastlane chdir()s into the fastlane folder
++# before executing any lane (fastlane/lib/fastlane/runner.rb:
++# `Dir.chdir(FastlaneCore::FastlaneFolder.path)`), so when the release
++# workflow invokes this file from ios/, `Dir.pwd` inside a lane is
++# ios/fastlane/, NOT ios/. Every relative path below is anchored on that fact.
++
++# Bundle ID for the shipped app. Keep in sync with
++# ios/PocketPal.xcodeproj (PRODUCT_BUNDLE_IDENTIFIER) and
++# android/app/build.gradle (applicationId).
++NEXUS_BUNDLE_ID = "com.nexusai.nexus"
++
++# Match stores the profiles for this app under this branch.
++NEXUS_MATCH_BRANCH = "master"
++
++def encoded_github_token
++  require "base64"
++  Base64.strict_encode64("x-access-token:#{ENV['MATCH_GITHUB_TOKEN']}")
++end
++
+ platform :ios do
+   desc "Release iOS app to TestFlight"
+   lane :release_ios_testflight do
+-    # Create GoogleService-Info.plist from GitHub secret
+-    File.write(
+-      File.join(Dir.pwd, "../GoogleService-Info.plist"),
+-      ENV["GOOGLE_SERVICES_PLIST"]
+-    )
+-    
++    ios_dir = File.expand_path('..', Dir.pwd)
++
++    # Create GoogleService-Info.plist from the GitHub secret. The Xcode
++    # project references it from the project directory (path =
++    # "GoogleService-Info.plist", sourceTree = "<group>"), i.e. ios/ —
++    # one level above this folder.
++    plist = ENV["GOOGLE_SERVICES_PLIST"]
++    if plist.nil? || plist.empty?
++      UI.user_error!(
++        "GOOGLE_SERVICES_PLIST is not set. The build needs " \
++        "ios/GoogleService-Info.plist; provide the secret in the workflow " \
++        "environment (repo Settings -> Secrets and variables -> Actions)."
++      )
++    end
++    File.write(File.join(ios_dir, "GoogleService-Info.plist"), plist)
++
+     setup_ci(force: true)
+ 
+     api_key = app_store_connect_api_key(
+       key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
+       issuer_id: ENV['APP_STORE_CONNECT_API_ISSUER_ID'],
+-      key_content: ENV['APP_STORE_CONNECT_API_KEY_CONTENT'].gsub('\\n', "\n"),
++      key_content: (ENV['APP_STORE_CONNECT_API_KEY_CONTENT'] || "").gsub("\\n", "\n"),
+       in_house: false
+     )
+ 
+-    # Helper method to encode GitHub token
+-    def encoded_github_token
+-      require 'base64'
+-      Base64.strict_encode64("x-access-token:#{ENV['MATCH_GITHUB_TOKEN']}")
+-    end
+-
+     match(
+       type: "development",
+       readonly: true,
+       api_key: api_key,
+-      git_branch: "master",
++      git_branch: NEXUS_MATCH_BRANCH,
+       git_basic_authorization: encoded_github_token
+     )
+ 
+@@ -36,19 +59,25 @@ platform :ios do
+       type: "appstore",
+       readonly: true,
+       api_key: api_key,
+-      git_branch: "master",
++      git_branch: NEXUS_MATCH_BRANCH,
+       #password: ENV['MATCH_PASSWORD'], # will be picked up from environment variables
+       git_basic_authorization: encoded_github_token
+     )
+ 
++    # workspace is relative to this folder (fastlane's chdir), so it must
++    # point at ios/PocketPal.xcworkspace explicitly — gym searches Dir.pwd,
++    # and there is no workspace inside ios/fastlane/.
++    # output_directory "../build" puts the ipa + dSYM zip in ios/build,
++    # which is where release.yml's dSYM upload step expects them.
+     build_ios_app(
++      workspace: "../PocketPal.xcworkspace",
+       scheme: "PocketPal",
+       export_method: "app-store",
+-      output_directory: "./build",
++      output_directory: "../build",
+       clean: true,
+       export_options: {
+         provisioningProfiles: {
+-          "com.nexusai.nexus" => "match AppStore com.nexusai.nexus"
++          NEXUS_BUNDLE_ID => "match AppStore #{NEXUS_BUNDLE_ID}"
+         },
+         signingStyle: "manual"
+       }
+@@ -91,7 +120,7 @@ platform :ios do
+       api_key = app_store_connect_api_key(
+         key_id: ENV['APP_STORE_CONNECT_API_KEY_ID'],
+         issuer_id: ENV['APP_STORE_CONNECT_API_ISSUER_ID'],
+-        key_content: ENV['APP_STORE_CONNECT_API_KEY_CONTENT'].gsub('\\n', "\n"),
++        key_content: (ENV['APP_STORE_CONNECT_API_KEY_CONTENT'] || "").gsub("\\n", "\n"),
+         in_house: false
+       )
+     else
+@@ -109,30 +138,25 @@ platform :ios do
+       UI.user_error!("Missing MATCH_GITHUB_TOKEN environment variable")
+     end
+ 
+-    # Helper method to encode GitHub token
+-    def encoded_github_token
+-      require 'base64'
+-      Base64.strict_encode64("x-access-token:#{ENV['MATCH_GITHUB_TOKEN']}")
+-    end
+-
+     # Use development profile for Device Farm testing
+     match(
+       type: "development",
+       readonly: true,
+       api_key: api_key,
+-      git_branch: "master",
++      git_branch: NEXUS_MATCH_BRANCH,
+       git_basic_authorization: encoded_github_token
+     )
+ 
+     build_ios_app(
++      workspace: "../PocketPal.xcworkspace",
+       scheme: "PocketPal",
+       export_method: "development",
+-      output_directory: "./build",
++      output_directory: "../build",
+       output_name: "PocketPal.ipa",
+       clean: true,
+       export_options: {
+         provisioningProfiles: {
+-          "com.nexusai.nexus" => "match Development com.nexusai.nexus"
++          NEXUS_BUNDLE_ID => "match Development #{NEXUS_BUNDLE_ID}"
+         },
+         signingStyle: "manual"
+       }
+diff --git a/ios/fastlane/Matchfile b/ios/fastlane/Matchfile
+index 0771beb..b0667ba 100644
+--- a/ios/fastlane/Matchfile
++++ b/ios/fastlane/Matchfile
+@@ -5,13 +5,12 @@ storage_mode("git")
+ 
+ type("appstore") # The default type, can be: appstore, adhoc, enterprise or development
+ 
+-app_identifier(["com.nexusai.nexus"]) 
++app_identifier(["com.nexusai.nexus"])
+ username(ENV['APP_STORE_CONNECT_USER_ID'])
+ 
+-# app_identifier(["tools.fastlane.app", "tools.fastlane.app2"])
+-# username("user@fastlane.tools") # Your Apple Developer Portal username
++# git_branch defaults to "master" — the branch the match repos created for
++# this project live on (see NEXUS_MATCH_BRANCH in fastlane/Fastfile).
+ 
+ # For all available options run `fastlane match --help`
+-# Remove the # in the beginning of the line to enable the other options
+ 
+-# The docs are available on https://docs.fastlane.tools/actions/match
++# The docs are available at https://docs.fastlane.tools/actions/match
+diff --git a/nexus-ci-fixes.zip b/nexus-ci-fixes.zip
+new file mode 100644
+index 0000000..81e57f5
+Binary files /dev/null and b/nexus-ci-fixes.zip differ
+diff --git a/package.json b/package.json
+index 495e43b..86b683c 100644
+--- a/package.json
++++ b/package.json
+@@ -7,7 +7,7 @@
+     "postinstall": "./scripts/postinstall.sh",
+     "android": "react-native run-android --mode=prodDebug",
+     "build:android": "cd android && ./gradlew assembleProdDebug && cd ..",
+-    "build:android:release": "cd android && ./gradlew bundleRelease && cd ..",
++    "build:android:release": "cd android && ./gradlew bundleProdRelease && cd ..",
+     "android:build:e2e": "cd android && E2E_BUILD=true ./gradlew assembleE2eReleaseE2e && cd ..",
+     "ios": "react-native run-ios --simulator=\"iPhone 16 Pro\"",
+     "ios:build": "cd ios && xcodebuild CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ -workspace PocketPal.xcworkspace -scheme PocketPal -configuration Debug -sdk iphonesimulator -arch $(uname -m) ONLY_ACTIVE_ARCH=YES GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO | xcpretty",

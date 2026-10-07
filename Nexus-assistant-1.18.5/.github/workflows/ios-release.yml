@@ -1,0 +1,215 @@
+name: iOS Release (IPA)
+
+# Builds the Nexus iOS app and publishes an installable .ipa to GitHub
+# Releases, alongside the APK/AAB produced by the Android workflow.
+# Trigger: push a version tag (v1.18.0) or run manually from the Actions tab.
+#
+# NOTE — INSTALLATION REQUIRED (one manual step)
+# This file is not active where it sits: GitHub only runs workflows from
+# .github/workflows/. Copy or move it into place:
+#
+#     git mv release/ios-release.yml .github/workflows/ios-release.yml
+#     git commit -m "chore(ci): activate iOS release workflow"
+#     git push
+#
+# What it produces once active
+#   Nexus-<tag>.ipa — an *unsigned* release IPA (payload packed from an
+#   xcarchive built with CODE_SIGNING_ALLOWED=NO). It can be installed on
+#   real Apple devices with sideloading tools such as AltStore, Sideloadly
+#   or TrollStore, each of which re-signs the bundle with its own
+#   certificate.
+#
+# App Store / TestFlight distribution requires an Apple Developer account
+# and signing assets this repo does not hold. To ship a signed build,
+# archive locally (see README → "Release Builds → iOS") or add
+# IOS_BUILD_CERTIFICATE / provisioning-profile secrets and switch the
+# archive step to CODE_SIGNING_ALLOWED=YES with an ExportOptions plist.
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-ios:
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.21.0'
+          cache: 'yarn'
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+
+      - name: Install JS dependencies
+        run: yarn install --frozen-lockfile || yarn install
+
+      # react-native-dotenv inlines `@env` imports at bundle time from
+      # .env. Same contract as the Android release workflow.
+      - name: Create .env file
+        run: |
+          cat > .env << EOL
+          FIREBASE_FUNCTIONS_URL=${{ vars.FIREBASE_FUNCTIONS_URL }}
+
+          # PalsHub/Supabase Configuration
+          SUPABASE_URL=${{ vars.SUPABASE_URL }}
+          SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+          PALSHUB_API_BASE_URL=${{ vars.PALSHUB_API_BASE_URL }}
+
+          # App Configuration
+          APP_URL=nexus://app
+
+          # Feature Flags (true/false)
+          ENABLE_PALSHUB_INTEGRATION=true
+          ENABLE_AUTHENTICATION=true
+          ENABLE_OFFLINE_MODE=true
+
+          # Google Sign-In Configuration
+          GOOGLE_IOS_CLIENT_ID=${{ vars.GOOGLE_IOS_CLIENT_ID }}
+          GOOGLE_WEB_CLIENT_ID=${{ vars.GOOGLE_WEB_CLIENT_ID }}
+          EOL
+          if [ -z "${{ vars.SUPABASE_URL }}" ]; then
+            echo "::warning::SUPABASE_URL repo variable is not set — PalsHub/auth features will be inert in this build."
+          fi
+
+      - name: Create iOS Env.xcconfig
+        run: |
+          cat > ios/Config/Env.xcconfig << 'EOL'
+          GOOGLE_WEB_CLIENT_ID = dummy-web-client-id.apps.googleusercontent.com
+          REVERSED_GOOGLE_IOS_CLIENT_ID = com.googleusercontent.apps.dummy-ios-client-id
+          EOL
+
+      # The Xcode project references GoogleService-Info.plist in Resources,
+      # so the file must exist for the build. Start from a dummy (mirrors
+      # the Android google-services.json handling); replaced with the real
+      # plist when the GOOGLE_SERVICE_INFO_PLIST secret is configured.
+      - name: Create dummy GoogleService-Info.plist
+        run: |
+          cat > ios/GoogleService-Info.plist << 'EOL'
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+            <key>API_KEY</key>
+            <string>dummy-api-key-for-ci-builds</string>
+            <key>GCM_SENDER_ID</key>
+            <string>000000000000</string>
+            <key>PLIST_VERSION</key>
+            <string>1</string>
+            <key>BUNDLE_ID</key>
+            <string>com.nexusai.nexus</string>
+            <key>PROJECT_ID</key>
+            <string>dummy-project-for-ci</string>
+            <key>STORAGE_BUCKET</key>
+            <string>dummy-project-for-ci.appspot.com</string>
+            <key>IS_ADS_ENABLED</key>
+            <false/>
+            <key>IS_ANALYTICS_ENABLED</key>
+            <false/>
+            <key>IS_APPINVITE_ENABLED</key>
+            <false/>
+            <key>IS_GCM_ENABLED</key>
+            <false/>
+            <key>IS_SIGNIN_ENABLED</key>
+            <false/>
+            <key>GOOGLE_APP_ID</key>
+            <string>1:000000000000:ios:0000000000000000</string>
+          </dict>
+          </plist>
+          EOL
+          cp ios/GoogleService-Info.plist ios/PocketPal/GoogleService-Info.plist
+
+      - name: Use the real GoogleService-Info.plist when the secret is set
+        env:
+          GOOGLE_SERVICE_INFO_PLIST: ${{ secrets.GOOGLE_SERVICE_INFO_PLIST }}
+        run: |
+          if [ -n "$GOOGLE_SERVICE_INFO_PLIST" ]; then
+            printf '%s\n' "$GOOGLE_SERVICE_INFO_PLIST" > ios/GoogleService-Info.plist
+            cp ios/GoogleService-Info.plist ios/PocketPal/GoogleService-Info.plist
+            echo "GoogleService-Info.plist written from secret."
+          else
+            echo "::warning::GOOGLE_SERVICE_INFO_PLIST not set — keeping the dummy plist; Firebase features will be non-functional in the built IPA."
+          fi
+
+      - name: Install pods
+        run: |
+          cd ios
+          bundle exec pod install --repo-update
+
+      - name: Build unsigned release archive
+        env:
+          RCT_NO_LAUNCH_PACKAGER: 1
+        run: |
+          set -euo pipefail
+          SIGNING=(
+            CODE_SIGNING_ALLOWED=NO
+            CODE_SIGNING_REQUIRED=NO
+            CODE_SIGN_IDENTITY=""
+            CODE_SIGN_STYLE=Manual
+            DEVELOPMENT_TEAM=""
+            PROVISIONING_PROFILE_SPECIFIER=""
+          )
+          if xcodebuild \
+              -workspace ios/PocketPal.xcworkspace \
+              -scheme PocketPal \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              -archivePath ios/build/Nexus.xcarchive \
+              "${SIGNING[@]}" \
+              archive > ios/xcodebuild-archive.log 2>&1; then
+            echo "Archive succeeded."
+          else
+            echo "::warning::Archive failed; falling back to unsigned device build. Last 80 log lines:"
+            tail -n 80 ios/xcodebuild-archive.log || true
+            xcodebuild \
+              -workspace ios/PocketPal.xcworkspace \
+              -scheme PocketPal \
+              -configuration Release \
+              -sdk iphoneos \
+              -destination 'generic/platform=iOS' \
+              -derivedDataPath ios/build \
+              "${SIGNING[@]}" \
+              build > ios/xcodebuild-build.log 2>&1
+            echo "Device build succeeded."
+          fi
+
+      - name: Package IPA
+        run: |
+          VERSION="${GITHUB_REF_NAME:-manual}"
+          # .app folder name comes from the target product name (PocketPal,
+          # kept build-internal by design — see README Identity Map).
+          APP_PATH=$(find ios/build/Nexus.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
+          test -n "$APP_PATH" || { echo "::error::No .app in archive"; exit 1; }
+          rm -rf Payload && mkdir -p Payload
+          cp -R "$APP_PATH" Payload
+          # An .ipa is a zip of a top-level Payload/ directory.
+          rm -f "Nexus-${VERSION}.ipa"
+          zip -qry "Nexus-${VERSION}.ipa" Payload
+          ls -lh "Nexus-${VERSION}.ipa"
+
+      # Deliberately no `name`/`body`/`generate_release_notes` here: the
+      # same-tag Android release (release.yml) owns the release title and
+      # notes. If this job runs first, action-gh-release creates the tag's
+      # release and Android fills in the text afterwards; either way both
+      # artifact sets land on one release entry.
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          files: |
+            Nexus-*.ipa
