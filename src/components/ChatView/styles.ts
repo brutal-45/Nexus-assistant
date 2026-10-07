@@ -140,4 +140,34 @@ export const createStyles = ({theme}: {theme: Theme}) =>
       justifyContent: 'flex-end' as const,
       marginTop: 2,
     },
+    searchBarContainer: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 4,
+      marginHorizontal: 12,
+      marginTop: 8,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 12,
+      backgroundColor: theme.colors.surfaceVariant,
+    },
+    searchInput: {
+      flex: 1,
+      fontSize: 15,
+      color: theme.colors.onSurface,
+      paddingVertical: 4,
+    },
+    searchCounter: {
+      fontSize: 12,
+      color: theme.colors.onSurfaceVariant,
+      fontVariant: ['tabular-nums'],
+      marginHorizontal: 4,
+    },
+    searchNavButton: {
+      padding: 4,
+    },
+    searchMatchHighlight: {
+      backgroundColor: theme.colors.primaryContainer,
+      borderRadius: 12,
+    },
   });

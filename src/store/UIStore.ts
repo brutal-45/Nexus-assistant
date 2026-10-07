@@ -79,6 +79,17 @@ export class UIStore {
   // state isn't pre-dismissed.
   dismissedDownloadIds: string[] = [];
 
+  // In-chat search bar visibility. Transient (per-session, not persisted).
+  chatSearchVisible: boolean = false;
+
+  // Show per-message timestamps under chat bubbles. Persisted.
+  showMessageTimestamps: boolean = false;
+
+  // Upgrade truncated first-message titles with a short LLM-written title
+  // after the first assistant reply. Persisted. Skipped automatically on
+  // low-RAM devices to avoid extra inference cost.
+  autoGenerateTitles: boolean = true;
+
   hasWarnedToolCompat(modelId: string): boolean {
     return this.toolCompatWarnedModels.includes(modelId);
   }
@@ -122,6 +133,8 @@ export class UIStore {
         'toolCompatWarnedModels',
         'hasCompletedOnboarding',
         'onboardingTopicsSnapshot',
+        'showMessageTimestamps',
+        'autoGenerateTitles',
       ],
       storage: AsyncStorage,
     });
@@ -168,6 +181,24 @@ export class UIStore {
   setAutoNavigateToChat(value: boolean) {
     runInAction(() => {
       this.autoNavigatetoChat = value;
+    });
+  }
+
+  setChatSearchVisible(value: boolean) {
+    runInAction(() => {
+      this.chatSearchVisible = value;
+    });
+  }
+
+  setShowMessageTimestamps(value: boolean) {
+    runInAction(() => {
+      this.showMessageTimestamps = value;
+    });
+  }
+
+  setAutoGenerateTitles(value: boolean) {
+    runInAction(() => {
+      this.autoGenerateTitles = value;
     });
   }
 

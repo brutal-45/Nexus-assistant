@@ -16,6 +16,7 @@ import {ModelCard} from './ModelCard';
 import {createStyles} from './styles';
 import {HFModelSearch} from './HFModelSearch';
 import {ModelAccordion} from './ModelAccordion';
+import {DownloadedStorageCard} from './DownloadedStorageCard';
 import {
   DownloadErrorDialog,
   ErrorSnackbar,
@@ -393,6 +394,8 @@ export const ModelsScreen: React.FC = observer(() => {
           onReport={handleReportModelError}
         />
       )}
+
+      <DownloadedStorageCard />
 
       <FlatList
         testID="flat-list"

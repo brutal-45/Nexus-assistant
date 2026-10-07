@@ -127,3 +127,79 @@ export function getModelMemoryRequirement(
 
   return estimated;
 }
+
+/**
+ * Usable-RAM ceiling shared by the load gate, download gate and auto-fit.
+ * Prefers live calibration (largest load that ever succeeded / native
+ * available-memory reading); on cold start falls back to the conservative
+ * heuristic min(60% of RAM, RAM - 1.2GB).
+ */
+export function getMemoryCeilingBytes(args: {
+  totalMemoryBytes: number;
+  largestSuccessfulLoad?: number;
+  availableMemoryCeiling?: number;
+}): number {
+  const {totalMemoryBytes, largestSuccessfulLoad, availableMemoryCeiling} =
+    args;
+  if (
+    largestSuccessfulLoad !== undefined ||
+    availableMemoryCeiling !== undefined
+  ) {
+    return Math.max(largestSuccessfulLoad ?? 0, availableMemoryCeiling ?? 0);
+  }
+  const total = Number.isFinite(totalMemoryBytes)
+    ? Math.max(totalMemoryBytes, 0)
+    : 0;
+  return Math.max(Math.min(total * 0.6, total - 1.2 * 1e9), 0);
+}
+
+/** Context sizes tried (high to low) when auto-fitting a model to RAM. */
+const FIT_CONTEXT_LADDER = [4096, 3072, 2048, 1536, 1024, 768, 512];
+
+export interface FittingContextResult {
+  n_ctx: number;
+  estimatedBytes: number;
+}
+
+/**
+ * Find the largest context size (at or below the current setting) that
+ * fits the ceiling. Only n_ctx is varied: KV cache scales linearly with
+ * it on every attention path, while cache-type overrides are
+ * flash-attention-gated elsewhere in the app and must not be second-
+ * guessed here. Returns null when even the smallest ladder rung won't
+ * fit, or when the model lacks GGUF metadata (the size-based fallback
+ * estimate doesn't vary with n_ctx, so there is nothing sound to fit
+ * against).
+ */
+export function computeFittingContextSize(
+  model: Model,
+  baseParams: ContextInitParams,
+  ceilingBytes: number,
+  projectionModel?: Model,
+  draftModel?: Model,
+): FittingContextResult | null {
+  if (
+    !model.ggufMetadata ||
+    !isValidGGUFMetadata(model.ggufMetadata) ||
+    !(ceilingBytes > 0)
+  ) {
+    return null;
+  }
+  const currentCtx = Number(baseParams.n_ctx) || 0;
+  const ladder = FIT_CONTEXT_LADDER.filter(n => n <= currentCtx);
+  if (ladder.length === 0) {
+    return null;
+  }
+  for (const n_ctx of ladder) {
+    const estimated = getModelMemoryRequirement(
+      model,
+      projectionModel,
+      {...baseParams, n_ctx},
+      draftModel,
+    );
+    if (estimated <= ceilingBytes) {
+      return {n_ctx, estimatedBytes: estimated};
+    }
+  }
+  return null;
+}

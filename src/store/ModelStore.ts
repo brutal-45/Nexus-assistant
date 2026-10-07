@@ -43,7 +43,7 @@ import {
 } from '../utils';
 import {getRecommendedProjectionModel} from '../utils/multimodalHelpers';
 import {isDraftOnlyModel} from '../utils/mtp';
-import {getOriginalModelName} from '../utils/formatters';
+import {getOriginalModelName, formatBytes} from '../utils/formatters';
 import type {OnboardingPalModelEntry} from './onboarding/onboardingPals';
 
 import {downloadManager, DownloadCancelledError} from '../services/downloads';
@@ -104,7 +104,16 @@ import {
   createDefaultContextInitParams,
 } from '../utils/contextInitParamsVersions';
 import NativeHardwareInfo from '../specs/NativeHardwareInfo';
-import {getModelMemoryRequirement} from '../utils/memoryEstimator';
+import {
+  getModelMemoryRequirement,
+  getMemoryCeilingBytes,
+  computeFittingContextSize,
+} from '../utils/memoryEstimator';
+import {
+  getDeviceRamBand,
+  getRamBandInitOverrides,
+  type RamBand,
+} from '../utils/lowDeviceProfile';
 import {loadLlamaModelInfo} from 'llama.rn';
 
 /**
@@ -239,6 +248,8 @@ class ModelStore {
   availableMemoryCeiling: number | undefined = undefined;
   // Updated after successful model load using GGUF estimator
   largestSuccessfulLoad: number | undefined = undefined;
+  // Device RAM band (low/medium/high); resolved at startup, runtime-only.
+  deviceRamBand: RamBand | undefined = undefined;
   // Projection models orphaned by the vision heal, awaiting deletion; drained
   // every launch (see drainPendingProjectionCleanup).
   pendingProjectionCleanupIds: string[] = [];
@@ -342,6 +353,21 @@ class ModelStore {
           };
         });
       }
+      // Resolve the RAM band every launch (cheap, unpersisted) and, on
+      // first launch only, auto-tune init params for low-RAM devices so
+      // the stock 2k context doesn't OOM sub-4GB phones out of the box.
+      // Existing installs keep their (possibly hand-tuned) settings.
+      try {
+        const band = await getDeviceRamBand();
+        runInAction(() => {
+          this.deviceRamBand = band;
+        });
+        if (isFirstLaunch) {
+          this.applyRamBandProfile(band);
+        }
+      } catch (error) {
+        console.warn('[ModelStore] RAM band detection failed:', error);
+      }
     } catch (error) {
       console.error('Failed to initialize thread count:', error);
       runInAction(() => {
@@ -349,6 +375,29 @@ class ModelStore {
       });
     }
   }
+
+  /**
+   * Apply the recommended init params for a RAM band (low band gets a
+   * smaller context/batches; other bands keep stock values apart from
+   * threads). Used on first launch and by the Settings "re-apply"
+   * action. Never touches cache types (flash-attention-gated).
+   */
+  applyRamBandProfile = async (band?: RamBand) => {
+    try {
+      const targetBand = band ?? (await getDeviceRamBand());
+      const threads = await getRecommendedThreadCount();
+      const overrides = getRamBandInitOverrides(targetBand, threads);
+      runInAction(() => {
+        this.deviceRamBand = targetBand;
+        this.contextInitParams = {
+          ...this.contextInitParams,
+          ...overrides,
+        };
+      });
+    } catch (error) {
+      console.warn('[ModelStore] Failed to apply RAM band profile:', error);
+    }
+  };
 
   setNThreads = (n_threads: number) => {
     runInAction(() => {
@@ -1598,6 +1647,14 @@ class ModelStore {
       return;
     }
 
+    // RAM pre-check: downloading a model the device can't load wastes
+    // bandwidth and storage. Warn with concrete numbers; the user can
+    // still proceed (e.g. for smaller settings or another device).
+    const ramGatePassed = await this.checkDownloadRamFit(model);
+    if (!ramGatePassed) {
+      return;
+    }
+
     try {
       const destinationPath = await this.getModelFullPath(model);
       const authToken = hfStore.shouldUseToken ? hfStore.hfToken : null;
@@ -1626,6 +1683,53 @@ class ModelStore {
 
       // Re-throw so the caller knows the download failed
       throw err;
+    }
+  };
+
+  /**
+   * Returns true when the model fits usable RAM (or the user accepts the
+   * warning). Fails open: telemetry errors never block a download.
+   */
+  private checkDownloadRamFit = async (model: Model): Promise<boolean> => {
+    try {
+      const totalMemory = await DeviceInfo.getTotalMemory();
+      const ceiling = getMemoryCeilingBytes({
+        totalMemoryBytes: totalMemory,
+        largestSuccessfulLoad: this.largestSuccessfulLoad,
+        availableMemoryCeiling: this.availableMemoryCeiling,
+      });
+      const requirement = getModelMemoryRequirement(
+        model,
+        undefined,
+        this.contextInitParams,
+      );
+      if (requirement <= ceiling) {
+        return true;
+      }
+      return new Promise<boolean>(resolve => {
+        Alert.alert(
+          uiStore.l10n.memory.downloadRamWarningTitle,
+          t(uiStore.l10n.memory.downloadRamWarningMessage, {
+            modelName: model.name,
+            needed: formatBytes(requirement),
+            available: formatBytes(ceiling),
+          }),
+          [
+            {
+              text: uiStore.l10n.memory.alerts.cancel,
+              style: 'cancel',
+              onPress: () => resolve(false),
+            },
+            {
+              text: uiStore.l10n.memory.downloadAnyway,
+              onPress: () => resolve(true),
+            },
+          ],
+        );
+      });
+    } catch (error) {
+      console.warn('[ModelStore] Download RAM check failed:', error);
+      return true;
     }
   };
 
@@ -2094,6 +2198,35 @@ class ModelStore {
       message = uiStore.l10n.memory.alerts.multimodalWarningMessage;
     }
 
+    // When RAM is the issue, offer a one-tap "Reduce & load" that shrinks
+    // the context to the largest size that fits this device (KV cache
+    // scales linearly with n_ctx). Metadata may have been fetched into
+    // the store by the check above, so prefer the store copy for fitting.
+    let fittingCtx: number | null = null;
+    if (hasMemoryIssue) {
+      try {
+        const totalMemory = await DeviceInfo.getTotalMemory();
+        const ceiling = getMemoryCeilingBytes({
+          totalMemoryBytes: totalMemory,
+          largestSuccessfulLoad: this.largestSuccessfulLoad,
+          availableMemoryCeiling: this.availableMemoryCeiling,
+        });
+        const modelForFit = this.models.find(m => m.id === model.id) ?? model;
+        const fit = computeFittingContextSize(
+          modelForFit,
+          this.contextInitParams,
+          ceiling,
+          projectionModel,
+          draftModel,
+        );
+        if (fit && fit.n_ctx < Number(this.contextInitParams.n_ctx)) {
+          fittingCtx = fit.n_ctx;
+        }
+      } catch (error) {
+        console.warn('[ModelStore] Context auto-fit failed:', error);
+      }
+    }
+
     // Show alert and wait for user decision - this happens OUTSIDE the mutex
     return new Promise<boolean>(resolve => {
       Alert.alert(title, message, [
@@ -2102,6 +2235,19 @@ class ModelStore {
           style: 'cancel',
           onPress: () => resolve(false),
         },
+        ...(fittingCtx !== null
+          ? [
+              {
+                text: t(uiStore.l10n.memory.alerts.reduceAndLoad, {
+                  nCtx: fittingCtx,
+                }),
+                onPress: () => {
+                  this.setNContext(fittingCtx as number);
+                  resolve(true);
+                },
+              },
+            ]
+          : []),
         {
           text: uiStore.l10n.memory.alerts.continue,
           onPress: () => resolve(true),

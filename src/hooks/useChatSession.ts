@@ -24,6 +24,7 @@ import {
   resolveSystemMessages,
 } from '../utils/systemPromptResolver';
 import {convertToChatMessages, removeThinkingParts} from '../utils/chat';
+import {maybeAutoTitleSession} from '../utils/chatTitle';
 import {sanitizeAssistantIdentity} from '../utils/assistantIdentity';
 import {activateKeepAwake, deactivateKeepAwake} from '../utils/keepAwake';
 import {
@@ -438,8 +439,7 @@ async function applyEventToStore(
         modelStore.activeModel?.origin === ModelOrigin.REMOTE,
       );
       const draftTimings =
-        sanitizedResult.draft_tokens != null &&
-        sanitizedResult.draft_tokens > 0
+        sanitizedResult.draft_tokens != null && sanitizedResult.draft_tokens > 0
           ? {
               draft_tokens: sanitizedResult.draft_tokens,
               draft_tokens_accepted: sanitizedResult.draft_tokens_accepted,
@@ -476,6 +476,11 @@ async function applyEventToStore(
       } catch (ttsErr) {
         console.warn('[useChatSession] TTS complete hook failed:', ttsErr);
       }
+      // Fire-and-forget LLM title upgrade for the session. Guarded and
+      // failure-silent inside (setting, low-RAM skip, idle re-check).
+      maybeAutoTitleSession(ctx.sessionId).catch(() => {
+        // Title generation is best-effort; ignore failures.
+      });
       return;
     }
     case 'run_failed':

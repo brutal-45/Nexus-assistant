@@ -30,6 +30,8 @@ import {
   GlobeIcon,
   MoonIcon,
   CpuChipIcon,
+  ChatIcon,
+  EditBoxIcon,
   ShareIcon,
   LinkExternalIcon,
   VolumeOnIcon,
@@ -1127,6 +1129,63 @@ export const SettingsScreen: React.FC = observer(() => {
                   />
                 </View>
 
+                <Divider />
+
+                {/* Message timestamps */}
+                <View style={styles.switchContainer}>
+                  <View style={styles.textContainer}>
+                    <View style={styles.labelWithIconContainer}>
+                      <ChatIcon
+                        width={20}
+                        height={20}
+                        style={styles.settingIcon}
+                        stroke={theme.colors.onSurface}
+                      />
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.showMessageTimestamps}
+                      </Text>
+                    </View>
+                    <Text variant="labelSmall" style={styles.textDescription}>
+                      {l10n.settings.showMessageTimestampsDescription}
+                    </Text>
+                  </View>
+                  <Switch
+                    testID="show-timestamps-switch"
+                    value={uiStore.showMessageTimestamps}
+                    onValueChange={value =>
+                      uiStore.setShowMessageTimestamps(value)
+                    }
+                  />
+                </View>
+                <Divider />
+
+                {/* Auto chat titles */}
+                <View style={styles.switchContainer}>
+                  <View style={styles.textContainer}>
+                    <View style={styles.labelWithIconContainer}>
+                      <EditBoxIcon
+                        width={20}
+                        height={20}
+                        style={styles.settingIcon}
+                        stroke={theme.colors.onSurface}
+                      />
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.autoGenerateTitles}
+                      </Text>
+                    </View>
+                    <Text variant="labelSmall" style={styles.textDescription}>
+                      {l10n.settings.autoGenerateTitlesDescription}
+                    </Text>
+                  </View>
+                  <Switch
+                    testID="auto-titles-switch"
+                    value={uiStore.autoGenerateTitles}
+                    onValueChange={value =>
+                      uiStore.setAutoGenerateTitles(value)
+                    }
+                  />
+                </View>
+
                 {/* Display Memory Usage (iOS only) */}
                 {Platform.OS === 'ios' && (
                   <>
@@ -1160,6 +1219,52 @@ export const SettingsScreen: React.FC = observer(() => {
                     </View>
                   </>
                 )}
+              </View>
+            </Card.Content>
+          </Card>
+
+          {/* Device performance */}
+          <Card elevation={0} style={styles.card}>
+            <Card.Title title={l10n.settings.devicePerformanceTitle} />
+            <Card.Content>
+              <View style={styles.settingItemContainer}>
+                <View style={styles.switchContainer}>
+                  <View style={styles.textContainer}>
+                    <View style={styles.labelWithIconContainer}>
+                      <CpuChipIcon
+                        width={20}
+                        height={20}
+                        style={styles.settingIcon}
+                        stroke={theme.colors.onSurface}
+                      />
+                      <Text variant="titleMedium" style={styles.textLabel}>
+                        {l10n.settings.devicePerformanceTitle}
+                      </Text>
+                    </View>
+                    <Text variant="labelSmall" style={styles.textDescription}>
+                      {t(l10n.settings.devicePerformanceDescription, {
+                        band:
+                          modelStore.deviceRamBand === 'low'
+                            ? l10n.memory.ramBandLow
+                            : modelStore.deviceRamBand === 'high'
+                              ? l10n.memory.ramBandHigh
+                              : l10n.memory.ramBandMedium,
+                      })}
+                    </Text>
+                  </View>
+                </View>
+                <Button
+                  testID="reapply-settings-button"
+                  mode="outlined"
+                  onPress={async () => {
+                    await modelStore.applyRamBandProfile();
+                    Alert.alert(
+                      l10n.settings.devicePerformanceTitle,
+                      l10n.settings.recommendedSettingsApplied,
+                    );
+                  }}>
+                  {l10n.settings.reapplyRecommendedSettings}
+                </Button>
               </View>
             </Card.Content>
           </Card>

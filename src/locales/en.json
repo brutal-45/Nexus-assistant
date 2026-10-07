@@ -205,7 +205,15 @@
     "removeRemoteModel": "Remove {{modelName}} ({{serverName}})?",
     "retryConnection": "Retry",
     "enterUrlManually": "Enter URL manually",
-    "manageServers": "Manage Servers"
+    "manageServers": "Manage Servers",
+    "devicePerformanceTitle": "Device performance",
+    "devicePerformanceDescription": "Detected profile: {{band}}. Re-apply to restore the recommended inference settings for this device.",
+    "reapplyRecommendedSettings": "Re-apply recommended settings",
+    "showMessageTimestamps": "Message timestamps",
+    "showMessageTimestampsDescription": "Show the time under each chat message.",
+    "autoGenerateTitles": "Auto chat titles",
+    "autoGenerateTitlesDescription": "Write a short title for new chats after the first reply. Skipped on low-memory devices.",
+    "recommendedSettingsApplied": "Recommended settings for your device profile have been applied."
   },
   "memory": {
     "shortWarning": "Memory Warning",
@@ -222,8 +230,15 @@
       "combinedWarningTitle": "Performance Warning",
       "combinedWarningMessage": "This model may exceed available memory and this device may not have sufficient resources for multimodal models. Loading may cause instability. Continue anyway?",
       "cancel": "Cancel",
-      "continue": "Continue"
-    }
+      "continue": "Continue",
+      "reduceAndLoad": "Reduce & load ({{nCtx}})"
+    },
+    "downloadRamWarningTitle": "May not fit in memory",
+    "downloadRamWarningMessage": "{{modelName}} needs ~{{needed}} but only ~{{available}} is estimated as usable on this device. It may fail to load. Download anyway?",
+    "downloadAnyway": "Download anyway",
+    "ramBandLow": "Low (< 4 GB RAM)",
+    "ramBandMedium": "Medium (4-8 GB RAM)",
+    "ramBandHigh": "High (8 GB+ RAM)"
   },
   "storage": {
     "checkFailed": "Failed to check storage",
@@ -469,7 +484,9 @@
       "vision": "Vision",
       "mtp": "Speculative (MTP)",
       "mtpDraft": "Speculative draft"
-    }
+    },
+    "downloadedSummary": "{{count}} downloaded · {{size}}",
+    "downloadedModels": "Downloaded models"
   },
   "completionParams": {
     "include_thinking_in_context": "Include AI thinking/reasoning parts in the context sent to the model. Disabling this can save context space. It might impact performance.",
@@ -771,7 +788,8 @@
       "exportCurrentSessionMarkdown": "Export as Markdown",
       "exportAllSessions": "Export all sessions",
       "exportChatSession": "Export chat session",
-      "importSessions": "Import sessions"
+      "importSessions": "Import sessions",
+      "searchInChat": "Search in chat"
     },
     "hfTokenSheet": {
       "title": "Hugging Face Token",
@@ -1246,7 +1264,9 @@
       "searchResultsTitle": "Search results",
       "showResultsAccessibilityLabel": "Show web search results for {{query}}",
       "openLinkError": "Couldn't open this link."
-    }
+    },
+    "searchPlaceholder": "Search in conversation",
+    "searchNoMatches": "No matches"
   },
   "htmlPreview": {
     "defaultTitle": "Preview",

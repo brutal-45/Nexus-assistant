@@ -57,6 +57,13 @@ const styles = ({
     pressable: {
       maxWidth: messageWidth,
     },
+    timestamp: {
+      color: theme.colors.onSurfaceVariant,
+      fontSize: 11,
+      marginTop: 2,
+      opacity: 0.7,
+      paddingHorizontal: 4,
+    },
   });
 
 export default styles;

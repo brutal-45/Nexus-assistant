@@ -8,6 +8,8 @@ import {
   StatusBar,
   StatusBarProps,
   View,
+  Text,
+  TextInput,
   TouchableOpacity,
   Keyboard,
 } from 'react-native';
@@ -53,7 +55,8 @@ import {t} from '../../locales';
 import {getModelMemoryRequirement} from '../../utils/memoryEstimator';
 import {CONTEXT_LADDER} from '../../utils/bannerVariantResolver';
 
-import {chatSessionStore, modelStore} from '../../store';
+import {chatSessionStore, modelStore, uiStore} from '../../store';
+import {derivedText} from '../../utils/chat';
 
 import {MessageType, User} from '../../utils/types';
 import {Pal} from '../../types/pal';
@@ -438,6 +441,7 @@ export const ChatView = observer(
     // Suggested-prompts overlay shares the input's keyboard translation but
     // must NOT inherit paddingBottom (which the input uses to clear the
     // home indicator). Applying it here would create a large empty gap
+    // between the chips andy gap
     // between the chips and the input when the keyboard is closed.
     const suggestedPromptsAnimatedStyle = useAnimatedStyle(() => ({
       transform: [{translateY: -keyboardOcclusion.value}],
@@ -508,6 +512,73 @@ export const ChatView = observer(
     });
 
     const previousChatMessages = usePrevious(chatMessages);
+
+    // ============ IN-CONVERSATION SEARCH ============
+    // Matches are derived from the same message list the FlatList renders
+    // (date headers excluded). Jumping uses scrollToIndex on the inverted
+    // list; the active match gets a highlight wash on its row wrapper.
+    const searchVisible = uiStore.chatSearchVisible;
+    const [searchQuery, setSearchQuery] = React.useState('');
+    const [searchIndex, setSearchIndex] = React.useState(0);
+    const searchMatches = React.useMemo(() => {
+      const q = searchQuery.trim().toLowerCase();
+      if (!searchVisible || q.length === 0) {
+        return [];
+      }
+      return chatMessages.filter(
+        m =>
+          m.type !== 'dateHeader' && derivedText(m).toLowerCase().includes(q),
+      );
+    }, [searchVisible, searchQuery, chatMessages]);
+    const activeSearchId =
+      searchMatches.length > 0
+        ? searchMatches[Math.min(searchIndex, searchMatches.length - 1)].id
+        : null;
+
+    const closeSearch = React.useCallback(() => {
+      setSearchQuery('');
+      setSearchIndex(0);
+      uiStore.setChatSearchVisible(false);
+    }, []);
+
+    const stepSearch = React.useCallback(
+      (direction: 1 | -1) => {
+        if (searchMatches.length === 0) {
+          return;
+        }
+        setSearchIndex(
+          prev =>
+            (prev + direction + searchMatches.length) % searchMatches.length,
+        );
+      },
+      [searchMatches.length],
+    );
+
+    // Reset position whenever the query (or result set) changes.
+    React.useEffect(() => {
+      setSearchIndex(0);
+    }, [searchQuery, searchVisible]);
+
+    React.useEffect(() => {
+      if (!searchVisible || activeSearchId === null) {
+        return;
+      }
+      const dataIndex = chatMessages.findIndex(m => m.id === activeSearchId);
+      if (dataIndex < 0) {
+        return;
+      }
+      try {
+        list.current?.scrollToIndex({
+          index: dataIndex,
+          animated: true,
+          viewPosition: 0.5,
+        });
+      } catch (error) {
+        // Unrendered (virtualized) row: fall back to the nearest end.
+        console.warn('[ChatView] search scroll failed:', error);
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchVisible, activeSearchId]);
 
     // ============ MESSAGE INPUT HANDLERS ============
     const wrappedOnSendPress = React.useCallback(
@@ -854,8 +925,13 @@ export const ChatView = observer(
           message.type !== 'dateHeader' &&
           message.id === newestMessageId;
 
+        const isActiveSearchMatch =
+          searchVisible &&
+          activeSearchId !== null &&
+          message.id === activeSearchId;
+
         return (
-          <View>
+          <View style={isActiveSearchMatch && styles.searchMatchHighlight}>
             <Message
               {...{
                 enableAnimation,
@@ -905,8 +981,80 @@ export const ChatView = observer(
         newestMessageId,
         activeRunPendingTalentNames,
         isGeneratingToolCall,
+        searchVisible,
+        activeSearchId,
+        styles.searchMatchHighlight,
       ],
     );
+
+    // In-conversation search bar (toggled from the header menu).
+    const renderSearchBar = () => {
+      const hasQuery = searchQuery.trim().length > 0;
+      const counter =
+        searchMatches.length > 0
+          ? `${Math.min(searchIndex, searchMatches.length - 1) + 1}/${
+              searchMatches.length
+            }`
+          : hasQuery
+            ? l10n.chat.searchNoMatches
+            : '';
+      return (
+        <View style={styles.searchBarContainer} testID="chat-search-bar">
+          <TextInput
+            testID="chat-search-input"
+            style={styles.searchInput}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            placeholder={l10n.chat.searchPlaceholder}
+            placeholderTextColor={theme.colors.onSurfaceVariant}
+            autoFocus
+            returnKeyType="search"
+            onSubmitEditing={() => stepSearch(1)}
+          />
+          {counter !== '' && (
+            <Text style={styles.searchCounter} testID="chat-search-counter">
+              {counter}
+            </Text>
+          )}
+          <TouchableOpacity
+            testID="chat-search-prev"
+            style={styles.searchNavButton}
+            disabled={searchMatches.length === 0}
+            onPress={() => stepSearch(-1)}>
+            <Icon
+              name="chevron-up"
+              size={22}
+              color={
+                searchMatches.length === 0
+                  ? theme.colors.onSurfaceDisabled
+                  : theme.colors.onSurface
+              }
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="chat-search-next"
+            style={styles.searchNavButton}
+            disabled={searchMatches.length === 0}
+            onPress={() => stepSearch(1)}>
+            <Icon
+              name="chevron-down"
+              size={22}
+              color={
+                searchMatches.length === 0
+                  ? theme.colors.onSurfaceDisabled
+                  : theme.colors.onSurface
+              }
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            testID="chat-search-close"
+            style={styles.searchNavButton}
+            onPress={closeSearch}>
+            <Icon name="close" size={22} color={theme.colors.onSurface} />
+          </TouchableOpacity>
+        </View>
+      );
+    };
 
     // Render empty state (video pal or regular chat placeholder)
     const renderListEmptyComponent = React.useCallback(() => {
@@ -1132,6 +1280,7 @@ export const ChatView = observer(
           {/* Main chat container */}
           <Reanimated.View style={styles.chatContainer}>
             {customContent}
+            {searchVisible && renderSearchBar()}
             {renderChatList()}
 
             {/* Chat input */}

@@ -4,7 +4,10 @@ import {L10nContext, formatBytes} from '../utils';
 import {t} from '../locales';
 import {Model, ContextInitParams} from '../utils/types';
 import {isHighEndDevice} from '../utils/deviceCapabilities';
-import {getModelMemoryRequirement} from '../utils/memoryEstimator';
+import {
+  getModelMemoryRequirement,
+  getMemoryCeilingBytes,
+} from '../utils/memoryEstimator';
 // Note: This creates a circular dependency with ModelStore (which imports hasEnoughMemory).
 // This is intentional and runtime-safe because:
 // 1. modelStore is instantiated after class definition
@@ -47,22 +50,16 @@ export const hasEnoughMemory = async (
   const {largestSuccessfulLoad, availableMemoryCeiling} = modelStore;
 
   // Calculate ceiling from calibration data
-  let ceiling: number;
-  if (
-    largestSuccessfulLoad !== undefined ||
-    availableMemoryCeiling !== undefined
-  ) {
-    // Use the maximum of both calibration signals
-    ceiling = Math.max(largestSuccessfulLoad ?? 0, availableMemoryCeiling ?? 0);
-  } else {
-    // Cold start: no calibration data yet, use conservative fallback
-    const totalMemory = await DeviceInfo.getTotalMemory();
-    // Use heuristic: min(60% of RAM, RAM - 1.2GB)
-    ceiling = Math.max(
-      Math.min(totalMemory * 0.6, totalMemory - 1.2 * 1e9),
-      0, // Ensure non-negative
-    );
-  }
+  // Shared ceiling: live calibration when available, else the conservative
+  // cold-start heuristic (min(60% of RAM, RAM - 1.2GB)).
+  const needsTotalRam =
+    largestSuccessfulLoad === undefined && availableMemoryCeiling === undefined;
+  const totalMemory = needsTotalRam ? await DeviceInfo.getTotalMemory() : 0;
+  const ceiling = getMemoryCeilingBytes({
+    totalMemoryBytes: totalMemory,
+    largestSuccessfulLoad,
+    availableMemoryCeiling,
+  });
 
   const memoryRequirement = getModelMemoryRequirement(
     modelForCalc,

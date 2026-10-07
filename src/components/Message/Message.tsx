@@ -4,7 +4,9 @@ import {Pressable, Text, View, Animated} from 'react-native';
 import {oneOf} from '@flyerhq/react-native-link-preview';
 import {observer} from 'mobx-react';
 import ReactNativeHapticFeedback from 'react-native-haptic-feedback';
+import dayjs from 'dayjs';
 
+import {uiStore} from '../../store';
 import {useTheme} from '../../hooks';
 
 import styles, {turnBlockStyles} from './styles';
@@ -135,7 +137,8 @@ export const Message = observer(
     const currentUserIsAuthor =
       message.type !== 'dateHeader' && user?.id === message.author.id;
 
-    const {container, contentContainer, dateHeader, pressable} = styles({
+    const {container, contentContainer, dateHeader, pressable, timestamp} =
+      styles({
       currentUserIsAuthor,
       message,
       messageWidth,
@@ -438,6 +441,19 @@ export const Message = observer(
           onPressOut={handlePressOut}
           style={pressable}>
           {innerContent}
+          {uiStore.showMessageTimestamps && (
+            <Text
+              testID="message-timestamp"
+              style={[
+                timestamp,
+                // eslint-disable-next-line react-native/no-inline-styles
+                {
+                  alignSelf: currentUserIsAuthor ? 'flex-end' : 'flex-start',
+                },
+              ]}>
+              {dayjs(message.createdAt).format('HH:mm')}
+            </Text>
+          )}
         </Pressable>
         <StatusIcon
           {...{

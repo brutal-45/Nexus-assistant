@@ -11,6 +11,7 @@ import {
   EditBoxIcon,
   EditIcon,
   GridIcon,
+  SearchIcon,
   SettingsIcon,
   ShareIcon,
   TrashIcon,
@@ -63,6 +64,11 @@ export const HeaderRight: React.FC = observer(() => {
 
   const onPressGenerationSettings = () => {
     setChatGenerationSettingsVisible(true);
+    closeMenu();
+  };
+
+  const onPressSearchInChat = () => {
+    uiStore.setChatSearchVisible(true);
     closeMenu();
   };
 
@@ -182,6 +188,12 @@ export const HeaderRight: React.FC = observer(() => {
           onPress={onPressGenerationSettings}
           label={l10n.components.headerRight.generationSettings}
           leadingIcon={() => <SettingsIcon stroke={theme.colors.primary} />}
+        />
+        <Menu.Item
+          disabled={!session?.messages?.length}
+          onPress={onPressSearchInChat}
+          label={l10n.components.headerRight.searchInChat}
+          leadingIcon={() => <SearchIcon stroke={theme.colors.primary} />}
         />
         <Menu.Item
           disabled={models.length === 0}
