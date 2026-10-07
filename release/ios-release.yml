@@ -217,6 +217,17 @@ jobs:
           zip -qry "Nexus-${VERSION}.ipa" Payload
           ls -lh "Nexus-${VERSION}.ipa"
 
+      # Retain the IPA as a run artifact so a transient release-publish
+      # failure never loses the 20-minute build; it can be attached to the
+      # release manually or via workflow_dispatch retry.
+      - name: Retain IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nexus-${{ inputs.tag || github.ref_name }}-ipa
+          path: Nexus-*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
       # Deliberately no `name`/`body`/`generate_release_notes` here: the
       # same-tag Android release (release.yml) owns the release title and
       # notes. If this job runs first, action-gh-release creates the tag's
