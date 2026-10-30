@@ -34,11 +34,11 @@ manual dispatch from any branch updates the same release as a tag push.
 | `GOOGLE_IOS_CLIENT_ID` | Var | Optional | Google Sign-In iOS |
 | `GOOGLE_WEB_CLIENT_ID` | Var | Optional | Google Sign-In Web |
 
-### iOS Release (IPA) — `release/ios-release.yml`
-**Trigger:** tag `v*` or manual dispatch (macos-15 runner) once the file is
-moved to `.github/workflows/ios-release.yml`. Builds the IPA
-(`xcodebuild archive` with unsigned fallback) and attaches
-`Nexus-vX.Y.Z.ipa` to the same GitHub Release as the Android artifacts.
+### iOS Release (IPA) — `ios-release.yml`
+**Trigger:** tag `v*` or manual dispatch (`macos-15` runner). Builds the IPA
+(`xcodebuild archive` with unsigned fallback), retains it as a workflow
+artifact, and attaches `Nexus-vX.Y.Z.ipa` to the same GitHub Release as the
+Android artifacts.
 
 Signing secrets (all required for a signed IPA; any missing → unsigned
 fallback IPA with warning, release still published):
@@ -70,37 +70,19 @@ block the release.
 - Requires model files in `models/*.gguf` (or `.litertlm`, `.task`)
 - Enforces 2 GiB per-file limit (GitHub Release asset cap)
 
-### CI Pipeline — `ci.yml`
-**Trigger:** push/PR to `master`
+### CI — `ci.yml`
+**Trigger:** push/PR to `master` (excluding `v*` tags and `updates.txt`), or manual dispatch.
 
-Jobs:
-1. **detect-changes** — skips heavy builds if only `src/locales/` changed
-2. **build-and-test**
-   - `yarn install --frozen-lockfile`
-   - `node scripts/validate-l10n.js` — 1241 keys, placeholder consistency
-   - `node scripts/verify-fonts.js` — 13 font families, Fraunces subset coverage
-   - `yarn lint` (ESLint + Prettier)
-   - `yarn typecheck` (tsc --noEmit)
-   - `yarn test --coverage` (Jest, 60% threshold)
-3. **build-android** (from-source)
-   - Hexagon SDK provisioning with SHA256 verification (`setup-hexagon-sdk` action)
-   - ccache with `compiler_check=content` and `time_macros,include_file_mtime,include_file_ctime` sloppiness
-   - Dummy `google-services.json` with `com.nexusai.nexus` + `com.nexusai.nexus.e2e`
-   - Dummy `.env` with `nexus://app`
-   - Dummy keystore `nexus-release-key.keystore` alias `nexus_key_alias`
-   - `./gradlew assembleProdRelease` with variant allowlist check
-   - `verify-android-payload.js` — checks native libs per `android-payload-manifest.json`
-   - DCE check — prod bundle must not contain `AUTOMATION_BRIDGE` etc.
-4. **build-ios** (macos-14)
-   - Dummy `Env.xcconfig` + `GoogleService-Info.plist` (bundle ID `com.nexusai.nexus`)
-   - `pod install`
-   - `xcodebuild -sdk iphonesimulator` Release, no signing
+Runs fast static checks and unit tests on `ubuntu-24.04`:
+- `yarn install --frozen-lockfile` (`RNLLAMA_SKIP_POSTINSTALL=1`)
+- `yarn l10n:validate` — key & placeholder consistency across locales
+- `yarn verify:fonts` — 13 font families & Fraunces subset coverage
+- `yarn lint` (ESLint + Prettier)
+- `yarn typecheck` (`tsc --noEmit`)
+- `yarn test --ci --maxWorkers=2` (Jest + 60% global coverage threshold)
 
-### E2E Android Build — `e2e-tests.yml`
-Manual dispatch, builds `assembleE2eReleaseE2e` with payload verification, uploads APK artifact.
-
-### L10n Upload — `l10n-upload.yml`
-Push to `master` touching `src/locales/en.json` → uploads to Weblate via `sync-weblate.js`. Requires `WEBLATE_TOKEN`.
+### Timestamp Updater — `main.yml` (`python script`)
+**Trigger:** manual dispatch (`workflow_dispatch`). Updates `updates.txt` every 5 minutes for 5 hours with fetch/reset + retry handling and `[skip ci]` commits.
 
 ## Versioning Contract
 
@@ -111,7 +93,7 @@ Push to `master` touching `src/locales/en.json` → uploads to Weblate via `sync
 
 Bump via: `bundle exec fastlane bump_version version_type:patch` (or major/minor/etc). The lane updates all 4 locations atomically.
 
-Current: **1.18.1** / versionCode 6 / build 6
+Current: **1.18.5** / versionCode 10 / build 10
 
 ## Release Flow (recommended)
 
@@ -120,9 +102,9 @@ Current: **1.18.1** / versionCode 6 / build 6
    (updates package.json, .version, Android versionCode/Name and iOS
    MARKETING_VERSION/build number atomically), then commit and push
 3. Push tag `vX.Y.Z` → triggers **Android Release (APK + AAB)** (`release.yml`)
-   and, once activated, **iOS Release (IPA)** (`ios-release.yml`); both attach
-   their artifacts to the same GitHub Release (idempotent — a rerun updates
-   the release)
+   and **iOS Release (IPA)** (`ios-release.yml`); both retain workflow artifacts
+   and attach their binaries to the same GitHub Release (idempotent — a rerun
+   updates the release)
 4. For models: add `.gguf` to `models/` → run **Model Release** → versioned model pack release
 
 For a hotfix without a version bump: run **Android Release (APK + AAB)** and/or

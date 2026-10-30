@@ -1,35 +1,25 @@
 name: iOS Release (IPA)
 
 # Builds the Nexus iOS app and publishes an installable .ipa to GitHub
-# Releases, alongside the APK/AAB produced by the Android workflow.
-# Trigger: push a version tag (v1.18.0) or run manually from the Actions tab.
+# Releases alongside the Android APK/AAB.
+# Trigger: push a version tag (e.g. v1.18.5) or run manually from the Actions tab.
 #
-# NOTE — INSTALLATION REQUIRED (one manual step)
-# This file is not active where it sits: GitHub only runs workflows from
-# .github/workflows/. Copy or move it into place:
-#
-#     git mv release/ios-release.yml .github/workflows/ios-release.yml
-#     git commit -m "chore(ci): activate iOS release workflow"
-#     git push
-#
-# What it produces once active
-#   Nexus-<tag>.ipa — an *unsigned* release IPA (payload packed from an
-#   xcarchive built with CODE_SIGNING_ALLOWED=NO). It can be installed on
-#   real Apple devices with sideloading tools such as AltStore, Sideloadly
-#   or TrollStore, each of which re-signs the bundle with its own
-#   certificate.
-#
-# App Store / TestFlight distribution requires an Apple Developer account
-# and signing assets this repo does not hold. To ship a signed build,
-# archive locally (see README → "Release Builds → iOS") or add
-# IOS_BUILD_CERTIFICATE / provisioning-profile secrets and switch the
-# archive step to CODE_SIGNING_ALLOWED=YES with an ExportOptions plist.
+# What it produces:
+#   Nexus-<tag>.ipa — an unsigned release IPA (payload packed from an
+#   xcarchive built with CODE_SIGNING_ALLOWED=NO). Installable on Apple
+#   devices via AltStore, Sideloadly, or TrollStore, which re-sign the
+#   bundle with their own certificate.
 
 on:
   push:
     tags:
       - 'v*'
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Attach the IPA to this release tag (e.g. v1.18.5). Leave empty for a build-only artifact run.'
+        required: false
+        default: ''
 
 permissions:
   contents: write
@@ -40,10 +30,10 @@ jobs:
     timeout-minutes: 120
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
-      - name: Set up Node
-        uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: '22.21.0'
           cache: 'yarn'
@@ -54,11 +44,27 @@ jobs:
           ruby-version: '3.2'
           bundler-cache: true
 
-      - name: Install JS dependencies
-        run: yarn install --frozen-lockfile || yarn install
+      - name: Resolve release version label
+        run: |
+          if [[ "${GITHUB_REF:-}" == refs/tags/* ]]; then
+            RELEASE_TAG="${GITHUB_REF_NAME}"
+            SHOULD_PUBLISH="true"
+          elif [ -n "${{ inputs.tag }}" ]; then
+            RELEASE_TAG="${{ inputs.tag }}"
+            SHOULD_PUBLISH="true"
+          else
+            RELEASE_TAG="${GITHUB_REF_NAME:-manual}"
+            SHOULD_PUBLISH="false"
+          fi
+          echo "RELEASE_TAG=${RELEASE_TAG}" >> "$GITHUB_ENV"
+          echo "SHOULD_PUBLISH=${SHOULD_PUBLISH}" >> "$GITHUB_ENV"
+          echo "Artifact label: ${RELEASE_TAG} (publish to GitHub Release: ${SHOULD_PUBLISH})"
 
-      # react-native-dotenv inlines `@env` imports at bundle time from
-      # .env. Same contract as the Android release workflow.
+      - name: Install JS dependencies
+        run: |
+          chmod +x scripts/postinstall.sh
+          yarn install --frozen-lockfile || yarn install
+
       - name: Create .env file
         run: |
           cat > .env << EOL
@@ -92,10 +98,6 @@ jobs:
           REVERSED_GOOGLE_IOS_CLIENT_ID = com.googleusercontent.apps.dummy-ios-client-id
           EOL
 
-      # The Xcode project references GoogleService-Info.plist in Resources,
-      # so the file must exist for the build. Start from a dummy (mirrors
-      # the Android google-services.json handling); replaced with the real
-      # plist when the GOOGLE_SERVICE_INFO_PLIST secret is configured.
       - name: Create dummy GoogleService-Info.plist
         run: |
           cat > ios/GoogleService-Info.plist << 'EOL'
@@ -152,6 +154,7 @@ jobs:
       - name: Build unsigned release archive
         env:
           RCT_NO_LAUNCH_PACKAGER: 1
+          NODE_OPTIONS: '--max-old-space-size=4096'
         run: |
           set -euo pipefail
           SIGNING=(
@@ -189,27 +192,60 @@ jobs:
 
       - name: Package IPA
         run: |
-          VERSION="${GITHUB_REF_NAME:-manual}"
-          # .app folder name comes from the target product name (PocketPal,
-          # kept build-internal by design — see README Identity Map).
-          APP_PATH=$(find ios/build/Nexus.xcarchive/Products/Applications -maxdepth 1 -name '*.app' -print -quit)
-          test -n "$APP_PATH" || { echo "::error::No .app in archive"; exit 1; }
+          set -euo pipefail
+          APP_PATH=$(find \
+            ios/build/Nexus.xcarchive/Products/Applications \
+            ios/build/Build/Products/Release-iphoneos \
+            -maxdepth 1 -name '*.app' -print -quit 2>/dev/null || true)
+          test -n "$APP_PATH" || { echo "::error::No .app found in archive or fallback build dir"; exit 1; }
           rm -rf Payload && mkdir -p Payload
           cp -R "$APP_PATH" Payload
-          # An .ipa is a zip of a top-level Payload/ directory.
-          rm -f "Nexus-${VERSION}.ipa"
-          zip -qry "Nexus-${VERSION}.ipa" Payload
-          ls -lh "Nexus-${VERSION}.ipa"
+          rm -f "Nexus-${RELEASE_TAG}.ipa"
+          zip -qry "Nexus-${RELEASE_TAG}.ipa" Payload
+          ls -lh "Nexus-${RELEASE_TAG}.ipa"
 
-      # Deliberately no `name`/`body`/`generate_release_notes` here: the
-      # same-tag Android release (release.yml) owns the release title and
-      # notes. If this job runs first, action-gh-release creates the tag's
-      # release and Android fills in the text afterwards; either way both
-      # artifact sets land on one release entry.
-      - name: Publish GitHub Release
-        uses: softprops/action-gh-release@v2
+      - name: Retain IPA artifact
+        uses: actions/upload-artifact@v6
         with:
-          draft: false
-          prerelease: ${{ contains(github.ref_name, '-') }}
-          files: |
-            Nexus-*.ipa
+          name: Nexus-${{ env.RELEASE_TAG }}-ipa
+          path: Nexus-*.ipa
+          if-no-files-found: error
+          retention-days: 14
+
+      # Retry-hardened release upload via gh CLI so concurrent tag runs
+      # (Android + iOS starting on the same tag) or transient GitHub upload
+      # errors never fail the release publish step.
+      - name: Publish GitHub Release
+        if: env.SHOULD_PUBLISH == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          IPA_FILE="Nexus-${RELEASE_TAG}.ipa"
+          PRERELEASE_ARGS=()
+          if [[ "$RELEASE_TAG" == *-* ]]; then
+            PRERELEASE_ARGS=(--prerelease)
+          fi
+
+          for attempt in 1 2 3 4 5; do
+            if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+              if gh release upload "$RELEASE_TAG" "$IPA_FILE" --clobber; then
+                echo "Uploaded $IPA_FILE to existing release $RELEASE_TAG."
+                exit 0
+              fi
+            else
+              if gh release create "$RELEASE_TAG" "$IPA_FILE" \
+                  --title "Nexus ${RELEASE_TAG}" \
+                  --generate-notes \
+                  "${PRERELEASE_ARGS[@]}"; then
+                echo "Created release $RELEASE_TAG with $IPA_FILE."
+                exit 0
+              fi
+            fi
+            wait_sec=$((attempt * 15))
+            echo "::warning::Release publish attempt ${attempt}/5 failed; retrying in ${wait_sec}s..."
+            sleep "$wait_sec"
+          done
+
+          echo "::error::Failed to publish $IPA_FILE to release $RELEASE_TAG after 5 attempts."
+          exit 1

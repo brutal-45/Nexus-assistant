@@ -1,9 +1,66 @@
- on:
-   pull_request:
-     branches:
--      - main
-+      - master
-   push:
-     branches:
--      - main
-+      - master
+name: CI
+
+# Fast static checks and unit tests. Runs on pull requests and pushes to master
+# (excluding release tags, which trigger the release workflows, and automated
+# timestamp updates to updates.txt). Can also be triggered manually.
+
+on:
+  pull_request:
+    branches:
+      - master
+    paths-ignore:
+      - 'updates.txt'
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - 'v*'
+    paths-ignore:
+      - 'updates.txt'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-checks:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      # llama.rn's postinstall downloads ~100 MB of prebuilt native libraries;
+      # static checks and Jest unit tests never compile or run native code.
+      RNLLAMA_SKIP_POSTINSTALL: '1'
+      NODE_OPTIONS: '--max-old-space-size=4096'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22.21.0'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: |
+          chmod +x scripts/postinstall.sh
+          yarn install --frozen-lockfile
+
+      - name: Validate translations
+        run: yarn l10n:validate
+
+      - name: Verify font registration
+        run: yarn verify:fonts
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Typecheck
+        run: yarn typecheck
+
+      - name: Unit tests
+        run: yarn test --ci --maxWorkers=2

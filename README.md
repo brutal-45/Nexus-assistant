@@ -71,16 +71,10 @@ open PocketPal.xcworkspace    # target name kept as 'PocketPal' by design (build
 
 #### iOS application file (`.ipa`) via CI
 
-A ready-made Apple release job lives at `release/ios-release.yml`. GitHub
-only runs workflows from `.github/workflows/`, so activate it with:
-
-```bash
-git mv release/ios-release.yml .github/workflows/ios-release.yml
-git commit -m "chore(ci): activate iOS release workflow" && git push
-```
-
-Once active, every version tag (`v*`) attaches `Nexus-<tag>.ipa` to the
-same GitHub Release as the Android APK/AAB.
+The Apple release workflow lives at `.github/workflows/ios-release.yml`.
+Every version tag (`v*`) — or a manual dispatch from the Actions tab — builds
+`Nexus-<tag>.ipa` and attaches it to the same GitHub Release as the Android
+APK/AAB.
 
 The built IPA is **unsigned** (built with `CODE_SIGNING_ALLOWED=NO` because
 distribution certificates live outside this repo) and installs on real
@@ -145,9 +139,10 @@ Users never see any of the above; changing them is optional hygiene (see the [wh
 
 | Workflow | Trigger | Produces |
 |---|---|---|
+| `CI` (`ci.yml`) | PR / push to `master` or manual run | Lint, typecheck, l10n, font & Jest unit test gates |
 | `Android Release (APK + AAB)` (`release.yml`) | push tag `v*` or manual run | Signed **APK + AAB** attached to a GitHub Release |
-| `iOS Release (IPA)` (`release/ios-release.yml`) | push tag `v*` once moved into `.github/workflows/` | Unsigned **IPA** attached to the same GitHub Release |
-| `Model Release` | manual run (version input) | **Model pack** attached to a GitHub Release |
+| `iOS Release (IPA)` (`ios-release.yml`) | push tag `v*` or manual run | Unsigned **IPA** attached to the same GitHub Release |
+| `Model Release` (`model-release.yml`) | manual run (version input) | **Model pack** attached to a GitHub Release |
 
 **APK release flow:** push a tag → Actions builds → Release page gets `Nexus-vX.Y.Z.apk`:
 

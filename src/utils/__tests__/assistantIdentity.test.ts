@@ -34,9 +34,7 @@ describe('isShippedDefaultSystemPrompt', () => {
 
   it('replaces a You-are prompt that still names BounsiAI', () => {
     expect(
-      isShippedDefaultSystemPrompt(
-        'You are BounsiAI, a helpful assistant.',
-      ),
+      isShippedDefaultSystemPrompt('You are BounsiAI, a helpful assistant.'),
     ).toBe(true);
     expect(
       isShippedDefaultSystemPrompt(
@@ -46,9 +44,7 @@ describe('isShippedDefaultSystemPrompt', () => {
   });
 
   it('keeps a user-authored custom prompt', () => {
-    expect(isShippedDefaultSystemPrompt('You are a pirate. Arr.')).toBe(
-      false,
-    );
+    expect(isShippedDefaultSystemPrompt('You are a pirate. Arr.')).toBe(false);
     expect(
       isShippedDefaultSystemPrompt(
         'You are a coding tutor who explains things simply.',
@@ -60,36 +56,32 @@ describe('isShippedDefaultSystemPrompt', () => {
 describe('sanitizeAssistantIdentity', () => {
   it('rewrites BounsiAI greetings to Nexus', () => {
     expect(
-      sanitizeAssistantIdentity(
-        "Hi! I'm BounsiAI, how can I help you today?",
-      ),
+      sanitizeAssistantIdentity("Hi! I'm BounsiAI, how can I help you today?"),
     ).toBe("Hi! I'm Nexus, how can I help you today?");
-    expect(
-      sanitizeAssistantIdentity('Hello, I am Bounsi AI.'),
-    ).toBe('Hello, I am Nexus.');
+    expect(sanitizeAssistantIdentity('Hello, I am Bounsi AI.')).toBe(
+      'Hello, I am Nexus.',
+    );
     expect(sanitizeAssistantIdentity('My name is bounsiai.')).toBe(
       'My name is Nexus.',
     );
   });
 
   it('rewrites PocketPal greetings to Nexus', () => {
-    expect(sanitizeAssistantIdentity("I'm PocketPal AI.")).toBe(
-      "I'm Nexus.",
-    );
+    expect(sanitizeAssistantIdentity("I'm PocketPal AI.")).toBe("I'm Nexus.");
     expect(sanitizeAssistantIdentity('I am PocketPal.')).toBe('I am Nexus.');
   });
 
   it('rewrites trained-in model self-intros (Qwen, Gemma, …)', () => {
     expect(
-      sanitizeAssistantIdentity(
-        'Hello, I am Qwen, created by Alibaba Cloud.',
-      ),
+      sanitizeAssistantIdentity('Hello, I am Qwen, created by Alibaba Cloud.'),
     ).toBe('Hello, I am Nexus.');
     expect(sanitizeAssistantIdentity("Hi, I'm Gemma. How can I help?")).toBe(
       "Hi, I'm Nexus. How can I help?",
     );
     expect(
-      sanitizeAssistantIdentity('I am a large language model trained by Google.'),
+      sanitizeAssistantIdentity(
+        'I am a large language model trained by Google.',
+      ),
     ).toBe('I am Nexus, a private on-device assistant.');
   });
 
