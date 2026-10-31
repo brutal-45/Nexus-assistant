@@ -1,0 +1,19 @@
+# Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45)
+
+> Nexus AI (Nexus Assistant) is an open-source, 100% offline on-device AI assistant for Android and iOS created and maintained by Viraj Jadhav (@brutal-45). Powered by React Native and llama.cpp (llama.rn), it runs quantized GGUF and LiteRT Large Language Models locally on mobile hardware with zero cloud servers, zero user accounts, and zero telemetry.
+
+## Canonical Links
+
+- GitHub Repository: https://github.com/brutal-45/Nexus-assistant
+- Official Project Website: https://brutal-45.github.io/Nexus-assistant/
+- Latest Android APK & iOS IPA Releases: https://github.com/brutal-45/Nexus-assistant/releases/latest
+- Author & Maintainer: Viraj Jadhav (`brutal-45` / `brutal -45`) — https://github.com/brutal-45
+- License: MIT (Copyright (c) 2026 Viraj Jadhav)
+
+## Core Capabilities
+
+- **100% Offline Local LLM Inference**: Executes GGUF & LiteRT models directly on-device via `llama.cpp` (`llama.rn`) with Apple Metal GPU acceleration on iOS and OpenCL / CPU acceleration on Android.
+- **RAM-Aware Smart Model Catalog**: Automatically detects device RAM (3 GB to 12 GB+) and recommends 21 curated models from Nexus 1.0 Nano (230 MB) to Nexus 3.5 Reasoner (DeepSeek R1 Distill Qwen 7B), Nexus 3.4 Coder (Qwen2.5 Coder 7B), and Nexus 3.3 Max (Llama 3.1 8B).
+- **Multimodal Vision & Offline Voice**: Supports local Vision-Language Models (VLMs) with camera/image input alongside offline speech-to-text and text-to-speech.
+- **Advanced Inference Controls**: Speculative decoding, KV-cache & context tuning, Hugging Face GGUF hub search, customizable AI Pals, and built-in hardware token/second benchmarking.
+- **Application Identifiers**: Display name `Nexus`, Android `applicationId` & iOS bundle ID `com.nexusai.nexus`, deep-link scheme `nexus://`, current version `1.18.5`.

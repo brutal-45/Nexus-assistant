@@ -235,7 +235,7 @@ jobs:
               fi
             else
               if gh release create "$RELEASE_TAG" "$IPA_FILE" \
-                  --title "Nexus ${RELEASE_TAG}" \
+                  --title "Nexus AI (Nexus Assistant) ${RELEASE_TAG} — Offline On-Device AI by brutal-45" \
                   --generate-notes \
                   "${PRERELEASE_ARGS[@]}"; then
                 echo "Created release $RELEASE_TAG with $IPA_FILE."

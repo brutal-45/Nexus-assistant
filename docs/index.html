@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Nexus AI (Nexus Assistant) by brutal-45 — Open-Source Offline AI Assistant on GitHub</title>
+  <meta name="description" content="Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) is an open-source, 100% offline on-device AI assistant project on GitHub for Android and iOS. Run local GGUF LLMs (Llama, Qwen, Gemma, DeepSeek) privately with voice, vision, and zero cloud." />
+  <meta name="keywords" content="Nexus AI, Nexus Assistant, Nexus Assistant by brutal-45, brutal-45, brutal -45, Viraj Jadhav, Nexus AI GitHub, best open source AI project GitHub, offline AI assistant Android iOS, local LLM mobile, llama.cpp React Native, GGUF on-device AI, private AI assistant" />
+  <meta name="author" content="Viraj Jadhav (brutal-45)" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="theme-color" content="#080A14" />
+
+  <link rel="canonical" href="https://brutal-45.github.io/Nexus-assistant/" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="manifest" href="site.webmanifest" />
+
+  <!-- Open Graph / Social -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="Nexus AI" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:title" content="Nexus AI (Nexus Assistant) by brutal-45 — Open-Source Offline AI Assistant" />
+  <meta property="og:description" content="Run Llama, Qwen, Gemma, Mistral &amp; DeepSeek 100% offline on Android &amp; iOS. Zero servers, zero telemetry, MIT open-source by Viraj Jadhav (@brutal-45)." />
+  <meta property="og:url" content="https://brutal-45.github.io/Nexus-assistant/" />
+  <meta property="og:image" content="https://brutal-45.github.io/Nexus-assistant/og-banner.jpg" />
+  <meta property="og:image:width" content="1424" />
+  <meta property="og:image:height" content="752" />
+  <meta property="og:image:alt" content="Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) — Open-Source Offline AI Assistant on GitHub" />
+
+  <!-- Twitter / X Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Nexus AI (Nexus Assistant) by brutal-45 — Offline On-Device AI" />
+  <meta name="twitter:description" content="Open-source personal AI assistant for Android &amp; iOS running local GGUF LLMs completely on-device with voice, vision &amp; zero cloud. Created by Viraj Jadhav (@brutal-45)." />
+  <meta name="twitter:image" content="https://brutal-45.github.io/Nexus-assistant/og-banner.jpg" />
+  <meta name="twitter:image:alt" content="Nexus AI — Open-Source Offline AI Assistant on GitHub by brutal-45" />
+
+  <!-- Schema.org Rich Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://brutal-45.github.io/Nexus-assistant/#website",
+        "url": "https://brutal-45.github.io/Nexus-assistant/",
+        "name": "Nexus AI (Nexus Assistant)",
+        "alternateName": [
+          "Nexus AI",
+          "Nexus Assistant",
+          "Nexus Assistant by brutal-45",
+          "Nexus AI GitHub Project"
+        ],
+        "publisher": {
+          "@id": "https://brutal-45.github.io/Nexus-assistant/#author"
+        }
+      },
+      {
+        "@type": "Person",
+        "@id": "https://brutal-45.github.io/Nexus-assistant/#author",
+        "name": "Viraj Jadhav",
+        "alternateName": [
+          "brutal-45",
+          "brutal -45",
+          "brutal45"
+        ],
+        "url": "https://github.com/brutal-45",
+        "sameAs": [
+          "https://github.com/brutal-45",
+          "https://github.com/brutal-45/Nexus-assistant"
+        ]
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://brutal-45.github.io/Nexus-assistant/#app",
+        "name": "Nexus AI",
+        "alternateName": [
+          "Nexus Assistant",
+          "Nexus AI Assistant",
+          "Nexus Assistant by brutal-45",
+          "Nexus"
+        ],
+        "description": "Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) is a private, 100% offline on-device AI assistant for Android and iOS powered by llama.cpp and React Native. Run local GGUF language models with multimodal vision, voice input, speculative decoding, and zero cloud servers.",
+        "applicationCategory": "UtilitiesApplication",
+        "operatingSystem": "Android, iOS",
+        "softwareVersion": "1.18.5",
+        "isAccessibleForFree": true,
+        "license": "https://opensource.org/licenses/MIT",
+        "url": "https://brutal-45.github.io/Nexus-assistant/",
+        "downloadUrl": "https://github.com/brutal-45/Nexus-assistant/releases/latest",
+        "installUrl": "https://github.com/brutal-45/Nexus-assistant/releases/latest",
+        "image": "https://brutal-45.github.io/Nexus-assistant/og-banner.jpg",
+        "author": {
+          "@id": "https://brutal-45.github.io/Nexus-assistant/#author"
+        },
+        "maintainer": {
+          "@id": "https://brutal-45.github.io/Nexus-assistant/#author"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        },
+        "featureList": [
+          "100% offline local LLM inference via llama.cpp (llama.rn) with Metal & OpenCL acceleration",
+          "Automatic RAM-aware model recommendations from 3 GB to 12 GB+ devices (Nexus 1.0 Nano to Nexus 3.5 Reasoner)",
+          "Direct Hugging Face GGUF & LiteRT model hub search and download",
+          "Multimodal camera/image vision (VLM) and offline voice input",
+          "Customizable AI Pals, system prompts, speculative decoding, and hardware benchmarking",
+          "Zero servers, zero accounts, zero telemetry — MIT open-source codebase"
+        ]
+      },
+      {
+        "@type": "SoftwareSourceCode",
+        "@id": "https://brutal-45.github.io/Nexus-assistant/#source",
+        "name": "brutal-45/Nexus-assistant",
+        "alternateName": "Nexus AI GitHub Repository",
+        "codeRepository": "https://github.com/brutal-45/Nexus-assistant",
+        "programmingLanguage": [
+          "TypeScript",
+          "React Native",
+          "C++",
+          "Kotlin",
+          "Objective-C++"
+        ],
+        "runtimePlatform": [
+          "Android",
+          "iOS"
+        ],
+        "version": "1.18.5",
+        "license": "https://opensource.org/licenses/MIT",
+        "author": {
+          "@id": "https://brutal-45.github.io/Nexus-assistant/#author"
+        }
+      },
+      {
+        "@type": "FAQPage",
+        "@id": "https://brutal-45.github.io/Nexus-assistant/#faq",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "What is Nexus AI (Nexus Assistant) by brutal-45?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nexus AI (also known as Nexus Assistant) is an open-source, 100% offline personal AI assistant for Android and iOS created and maintained by Viraj Jadhav (GitHub: brutal-45). Powered by React Native and llama.cpp (llama.rn), it runs quantized GGUF and LiteRT language models directly on your phone with zero cloud servers, zero user accounts, and zero telemetry."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Why is Nexus AI one of the best open-source offline AI projects on GitHub?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nexus AI combines production-grade cross-platform mobile engineering with automatic RAM-aware tuning across 21 curated models (from 230 MB Nexus 1.0 Nano for 3-4 GB devices up to 7B-8B coding and reasoning models for 8-12 GB+ flagships), multimodal image vision, on-device voice input, speculative decoding, hardware benchmarking, Hugging Face GGUF hub search, and verifiable MIT-licensed privacy."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Nexus Assistant work completely offline without internet?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Once you download a model onto your phone, Nexus Assistant performs every token of inference locally on your device's CPU, GPU (Apple Metal on iOS, OpenCL on Android), or NPU. It works in airplane mode, underground, or completely off-grid without sending any conversation data over the network."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Which local LLMs can I run in Nexus AI on Android and iOS?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nexus AI includes a built-in 21-model lineup spanning Llama 3.1 8B, Qwen 3 / Qwen 3.5 / Qwen 2.5 Coder, Google Gemma 3 & Gemma 4, Mistral 7B & Ministral, Microsoft Phi-4 Mini, SmolLM3, Liquid LFM2.5 (including Vision), and DeepSeek R1 Distill, plus any compatible GGUF model from Hugging Face."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Who created Nexus Assistant (brutal-45 / Viraj Jadhav)?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nexus Assistant is maintained by Viraj Jadhav under the GitHub handle brutal-45 (often searched as brutal-45 or brutal -45) at github.com/brutal-45/Nexus-assistant under the permissive MIT License."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "How do I download and install Nexus AI on Android or iOS?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Visit the official GitHub Releases page at github.com/brutal-45/Nexus-assistant/releases/latest to download the signed Android APK (or Play Store AAB) or the unsigned iOS IPA (installable via AltStore, Sideloadly, or TrollStore), or build directly from source with Yarn, Android Studio, or Xcode."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <style>
+    :root {
+      --bg: #070913;
+      --bg-elevated: #0e1326;
+      --bg-card: rgba(17, 23, 44, 0.82);
+      --border: rgba(124, 92, 255, 0.24);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --text: #f3f6ff;
+      --text-muted: #a6b1d0;
+      --accent-cyan: #22d3ee;
+      --accent-violet: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.28);
+      --radius: 16px;
+      --max-w: 1100px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, Helvetica, Arial, sans-serif;
+      background:
+        radial-gradient(900px 500px at 18% -8%, rgba(139, 92, 246, 0.22), transparent 60%),
+        radial-gradient(800px 460px at 85% 4%, rgba(34, 211, 238, 0.16), transparent 60%),
+        var(--bg);
+      color: var(--text);
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent-cyan);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* Header */
+    header.site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(14px);
+      background: rgba(7, 9, 19, 0.82);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .nav-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      min-height: 68px;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+      font-size: 1.12rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 36px;
+      height: 36px;
+      border-radius: 9px;
+      box-shadow: 0 0 18px var(--accent-glow);
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 0.95rem;
+    }
+
+    .nav-links a {
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 12px 22px;
+      border-radius: 11px;
+      font-weight: 600;
+      font-size: 0.98rem;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      text-decoration: none !important;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-violet), #0ea5e9);
+      color: #ffffff !important;
+      box-shadow: 0 8px 28px rgba(99, 102, 241, 0.35);
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text) !important;
+      border: 1px solid var(--border);
+    }
+
+    .btn-sm {
+      padding: 8px 15px;
+      font-size: 0.88rem;
+      border-radius: 9px;
+    }
+
+    /* Hero */
+    .hero {
+      padding: 72px 0 56px;
+      text-align: center;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 999px;
+      background: rgba(139, 92, 246, 0.13);
+      border: 1px solid var(--border);
+      color: #d8ccff;
+      font-size: 0.86rem;
+      font-weight: 600;
+      margin-bottom: 22px;
+    }
+
+    .hero-icon {
+      width: 104px;
+      height: 104px;
+      border-radius: 24px;
+      margin: 0 auto 22px;
+      display: block;
+      box-shadow: 0 14px 44px rgba(34, 211, 238, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.1);
+    }
+
+    h1 {
+      font-size: clamp(2.1rem, 5vw, 3.45rem);
+      line-height: 1.14;
+      letter-spacing: -0.025em;
+      margin: 0 auto 18px;
+      max-width: 880px;
+    }
+
+    .gradient-text {
+      background: linear-gradient(95deg, #38bdf8 0%, #a78bfa 55%, #22d3ee 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+
+    .hero-lead {
+      max-width: 760px;
+      margin: 0 auto 30px;
+      font-size: 1.14rem;
+      color: var(--text-muted);
+    }
+
+    .hero-lead strong {
+      color: var(--text);
+    }
+
+    .cta-group {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .meta-strip {
+      display: flex;
+      justify-content: center;
+      gap: 22px;
+      flex-wrap: wrap;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .meta-strip span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .banner-frame {
+      margin: 44px auto 0;
+      max-width: 920px;
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55);
+    }
+
+    .banner-frame img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Sections */
+    section {
+      padding: 56px 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
+    h2 {
+      font-size: clamp(1.55rem, 3vw, 2.15rem);
+      letter-spacing: -0.015em;
+      margin: 0 0 12px;
+    }
+
+    .section-intro {
+      color: var(--text-muted);
+      max-width: 740px;
+      margin: 0 0 32px;
+      font-size: 1.04rem;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(290px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border);
+    }
+
+    .card h3 {
+      margin: 0 0 10px;
+      font-size: 1.14rem;
+      color: #ffffff;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.96rem;
+    }
+
+    /* Table */
+    .table-wrap {
+      overflow-x: auto;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.94rem;
+    }
+
+    th, td {
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    th {
+      background: rgba(139, 92, 246, 0.1);
+      color: #e2e8ff;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background: rgba(255, 255, 255, 0.07);
+      padding: 2px 6px;
+      border-radius: 5px;
+      font-size: 0.88em;
+      color: #bae6fd;
+    }
+
+    pre {
+      background: #05070f;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 18px 20px;
+      overflow-x: auto;
+      margin: 16px 0 0;
+    }
+
+    pre code {
+      background: transparent;
+      padding: 0;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+
+    /* FAQ */
+    .faq-list {
+      display: grid;
+      gap: 16px;
+    }
+
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      padding: 22px 24px;
+    }
+
+    .faq-item h3 {
+      margin: 0 0 8px;
+      font-size: 1.08rem;
+      color: #ffffff;
+    }
+
+    .faq-item p {
+      margin: 0;
+      color: var(--text-muted);
+      font-size: 0.96rem;
+    }
+
+    /* Author Box */
+    .author-box {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.14), rgba(34, 211, 238, 0.08));
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+    }
+
+    .author-box h3 {
+      margin: 0 0 6px;
+      font-size: 1.25rem;
+    }
+
+    .author-box p {
+      margin: 0;
+      color: var(--text-muted);
+      max-width: 650px;
+    }
+
+    footer {
+      border-top: 1px solid var(--border-subtle);
+      padding: 36px 0 48px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+    }
+
+    .footer-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a class="brand" href="https://brutal-45.github.io/Nexus-assistant/">
+        <img src="icon-192.png" alt="Nexus AI icon" width="36" height="36" />
+        <span>Nexus AI <small style="color: var(--text-muted); font-weight: 500;">by brutal-45</small></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#models">Model Lineup</a>
+        <a href="#quickstart">Quick Start</a>
+        <a href="#faq">FAQ</a>
+        <a class="btn btn-primary btn-sm" href="https://github.com/brutal-45/Nexus-assistant" rel="noopener">GitHub Repository</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" style="border-top: none;">
+      <div class="container">
+        <div class="pill">v1.18.5 · MIT Open Source · Android &amp; iOS</div>
+        <img class="hero-icon" src="icon-192.png" alt="Nexus AI (Nexus Assistant) by brutal-45 app logo" width="104" height="104" />
+        <h1>
+          Nexus AI — <span class="gradient-text">Open-Source Offline AI Assistant</span> for Android &amp; iOS
+        </h1>
+        <p class="hero-lead">
+          <strong>Nexus AI</strong> (<strong>Nexus Assistant</strong>) by <strong>Viraj Jadhav</strong>
+          (<a href="https://github.com/brutal-45"><code>@brutal-45</code></a>) runs modern Large Language Models
+          100% locally on your phone. Powered by React Native and <code>llama.cpp</code> (<code>llama.rn</code>) —
+          no cloud servers, no accounts, and zero data leaving your device.
+        </p>
+        <div class="cta-group">
+          <a class="btn btn-primary" href="https://github.com/brutal-45/Nexus-assistant">
+            Star &amp; Explore on GitHub (brutal-45/Nexus-assistant)
+          </a>
+          <a class="btn btn-secondary" href="https://github.com/brutal-45/Nexus-assistant/releases/latest">
+            Download Latest APK / IPA (v1.18.5)
+          </a>
+        </div>
+        <div class="meta-strip">
+          <span>Package: <code>com.nexusai.nexus</code></span>
+          <span>Maintainer: <a href="https://github.com/brutal-45">Viraj Jadhav (<code>brutal-45</code>)</a></span>
+          <span>License: MIT</span>
+          <span>100% On-Device Inference</span>
+        </div>
+
+        <div class="banner-frame">
+          <img
+            src="og-banner.jpg"
+            alt="Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) — Run Local LLMs 100% On-Device on Android and iOS"
+            width="1424"
+            height="752"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="container">
+        <h2>Why Nexus AI Stands Out Among Open-Source AI Projects on GitHub</h2>
+        <p class="section-intro">
+          Built for real mobile hardware rather than cloud API wrappers, Nexus Assistant delivers verifiable privacy,
+          automatic hardware profiling, and full local LLM control in a single native app.
+        </p>
+
+        <div class="grid-3">
+          <article class="card">
+            <h3>100% Offline &amp; Zero Telemetry</h3>
+            <p>
+              Chat in airplane mode, underground, or completely off-grid. Every prompt and completion stays on your
+              device with Apple Metal acceleration on iOS and OpenCL / CPU acceleration on Android.
+            </p>
+          </article>
+          <article class="card">
+            <h3>RAM-Aware Smart Tuning</h3>
+            <p>
+              Nexus automatically inspects device memory (3 GB to 12 GB+ RAM) and recommends optimal quantized GGUF
+              models, context lengths, and GPU layer settings so inference stays fast and stable.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Multimodal Vision &amp; Voice</h3>
+            <p>
+              Pair local Vision-Language Models (VLMs) with camera or photo attachments, use offline speech-to-text
+              and text-to-speech, and switch between specialized AI Pals and custom system prompts.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Hugging Face GGUF Hub</h3>
+            <p>
+              Browse and download thousands of open-weight GGUF and LiteRT models directly inside the app — including
+              Llama, Qwen, Gemma, Mistral, Phi-4, SmolLM3, LFM2.5, and DeepSeek R1 Distill.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Speculative Decoding &amp; Benchmarks</h3>
+            <p>
+              Measure real prompt-processing and token-generation speeds on your hardware, tune sampling temperature
+              and KV-cache settings, and accelerate generation with draft-model speculative decoding.
+            </p>
+          </article>
+          <article class="card">
+            <h3>Verifiable MIT Open Source</h3>
+            <p>
+              Every line of TypeScript, native Android, native iOS, and GitHub Actions release automation is auditable
+              at <a href="https://github.com/brutal-45/Nexus-assistant">github.com/brutal-45/Nexus-assistant</a>.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="models">
+      <div class="container">
+        <h2>Built-In Nexus Model Lineup (3 GB – 12 GB+ RAM)</h2>
+        <p class="section-intro">
+          Nexus ships a curated 21-model in-app catalog matched automatically to your phone's RAM tier, alongside
+          unrestricted Hugging Face GGUF search.
+        </p>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>In-App Model</th>
+                <th>Base Architecture</th>
+                <th>Quantization</th>
+                <th>Approx. Size</th>
+                <th>Target Device Tier</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Nexus 1.0 Nano</strong></td>
+                <td>LFM2.5 350M</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~230 MB</td>
+                <td>3–4 GB RAM</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 1.1</strong></td>
+                <td>Gemma 3 1B</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~800 MB</td>
+                <td>4–6 GB RAM</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 1.2 Vision</strong></td>
+                <td>LFM2-VL 1.6B</td>
+                <td><code>Q4_0</code></td>
+                <td>~700 MB</td>
+                <td>6 GB RAM (Multimodal Image Input)</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 1.8</strong></td>
+                <td>Phi-4 Mini</td>
+                <td><code>Q4_0</code></td>
+                <td>~2.3 GB</td>
+                <td>8 GB RAM</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 2.0</strong></td>
+                <td>Gemma 3 4B</td>
+                <td><code>Q4</code></td>
+                <td>~2.4–3.0 GB</td>
+                <td>8–12 GB RAM</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 3.2 Pro</strong></td>
+                <td>Qwen2.5 7B Instruct</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~4.68 GB</td>
+                <td>8–12 GB+ RAM (Math, Code &amp; Reasoning)</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 3.3 Max</strong></td>
+                <td>Meta Llama 3.1 8B Instruct</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~4.92 GB</td>
+                <td>12 GB+ RAM (General Knowledge &amp; Chat)</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 3.4 Coder</strong></td>
+                <td>Qwen2.5 Coder 7B Instruct</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~4.68 GB</td>
+                <td>12 GB+ RAM (Offline Coding &amp; Debugging)</td>
+              </tr>
+              <tr>
+                <td><strong>Nexus 3.5 Reasoner</strong></td>
+                <td>DeepSeek R1 Distill Qwen 7B</td>
+                <td><code>Q4_K_M</code></td>
+                <td>~4.68 GB</td>
+                <td>8–12 GB+ RAM (Chain-of-Thought Logic)</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section id="quickstart">
+      <div class="container">
+        <h2>Download &amp; Developer Quick Start</h2>
+        <p class="section-intro">
+          Install prebuilt Android (<code>.apk</code>) or iOS (<code>.ipa</code>) packages directly from
+          <a href="https://github.com/brutal-45/Nexus-assistant/releases/latest">GitHub Releases</a>, or build Nexus
+          Assistant from source:
+        </p>
+        <pre><code>git clone https://github.com/brutal-45/Nexus-assistant.git
+cd Nexus-assistant
+yarn install
+
+# Run on Android device or emulator
+yarn android
+
+# Run on iOS (macOS with Xcode 16+ &amp; CocoaPods)
+cd ios &amp;&amp; bundle exec pod install &amp;&amp; cd ..
+yarn ios</code></pre>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="container">
+        <h2>Frequently Asked Questions</h2>
+        <p class="section-intro">
+          Common questions about Nexus AI, Nexus Assistant, supported local models, and creator Viraj Jadhav (<code>brutal-45</code>).
+        </p>
+
+        <div class="faq-list">
+          <article class="faq-item">
+            <h3>What is Nexus AI (Nexus Assistant) by brutal-45?</h3>
+            <p>
+              Nexus AI (also known as Nexus Assistant) is an open-source, 100% offline personal AI assistant for
+              Android and iOS created and maintained by Viraj Jadhav (GitHub:
+              <a href="https://github.com/brutal-45"><code>brutal-45</code></a>). Powered by React Native and
+              <code>llama.cpp</code> (<code>llama.rn</code>), it runs quantized GGUF and LiteRT language models
+              directly on your phone with zero cloud servers, zero user accounts, and zero telemetry.
+            </p>
+          </article>
+
+          <article class="faq-item">
+            <h3>Why is Nexus AI one of the best open-source offline AI projects on GitHub?</h3>
+            <p>
+              Nexus AI combines production-grade cross-platform mobile engineering with automatic RAM-aware tuning
+              across 21 curated models (from 230 MB Nexus 1.0 Nano for 3–4 GB devices up to 7B–8B coding and reasoning
+              models for 8–12 GB+ flagships), multimodal image vision, on-device voice input, speculative decoding,
+              hardware benchmarking, Hugging Face GGUF hub search, and verifiable MIT-licensed privacy.
+            </p>
+          </article>
+
+          <article class="faq-item">
+            <h3>Does Nexus Assistant work completely offline without internet?</h3>
+            <p>
+              Yes. Once you download a model onto your phone, Nexus Assistant performs every token of inference locally
+              on your device's CPU, GPU (Apple Metal on iOS, OpenCL on Android), or NPU. It works in airplane mode,
+              underground, or completely off-grid without sending any conversation data over the network.
+            </p>
+          </article>
+
+          <article class="faq-item">
+            <h3>Which local LLMs can I run in Nexus AI on Android and iOS?</h3>
+            <p>
+              Nexus AI includes a built-in 21-model lineup spanning Llama 3.1 8B, Qwen 3 / Qwen 3.5 / Qwen 2.5 Coder,
+              Google Gemma 3 &amp; Gemma 4, Mistral 7B &amp; Ministral, Microsoft Phi-4 Mini, SmolLM3, Liquid LFM2.5
+              (including Vision), and DeepSeek R1 Distill, plus any compatible GGUF model from Hugging Face.
+            </p>
+          </article>
+
+          <article class="faq-item">
+            <h3>Who created Nexus Assistant (brutal-45 / Viraj Jadhav)?</h3>
+            <p>
+              Nexus Assistant is maintained by <strong>Viraj Jadhav</strong> under the GitHub handle
+              <a href="https://github.com/brutal-45"><code>brutal-45</code></a> (often searched as
+              <code>brutal-45</code> or <code>brutal -45</code>) at
+              <a href="https://github.com/brutal-45/Nexus-assistant">github.com/brutal-45/Nexus-assistant</a> under the
+              permissive MIT License.
+            </p>
+          </article>
+
+          <article class="faq-item">
+            <h3>How do I download and install Nexus AI on Android or iOS?</h3>
+            <p>
+              Visit the official GitHub Releases page at
+              <a href="https://github.com/brutal-45/Nexus-assistant/releases/latest">github.com/brutal-45/Nexus-assistant/releases/latest</a>
+              to download the signed Android APK (or Play Store AAB) or the unsigned iOS IPA (installable via AltStore,
+              Sideloadly, or TrollStore), or build directly from source with Yarn, Android Studio, or Xcode.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="author">
+      <div class="container">
+        <div class="author-box">
+          <div>
+            <h3>Created &amp; Maintained by Viraj Jadhav (<code>@brutal-45</code>)</h3>
+            <p>
+              Open-source developer building private, local-first mobile AI systems. Follow releases, open issues, or
+              contribute to <strong>Nexus AI (Nexus Assistant)</strong> on GitHub.
+            </p>
+          </div>
+          <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <a class="btn btn-primary btn-sm" href="https://github.com/brutal-45">@brutal-45 on GitHub</a>
+            <a class="btn btn-secondary btn-sm" href="https://github.com/brutal-45/Nexus-assistant/issues">Report an Issue</a>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container">
+      <div class="footer-links">
+        <a href="https://github.com/brutal-45/Nexus-assistant">GitHub Repository</a>
+        <a href="https://github.com/brutal-45/Nexus-assistant/releases/latest">Latest Release</a>
+        <a href="https://github.com/brutal-45">Viraj Jadhav (@brutal-45)</a>
+        <a href="llms.txt">llms.txt</a>
+        <a href="sitemap.xml">Sitemap</a>
+      </div>
+      <div>
+        &copy; 2026 Viraj Jadhav (<code>brutal-45</code>). Released under the MIT License.
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+title: "Nexus AI (Nexus Assistant): Open-Source Offline On-Device AI Assistant for Android and iOS"
+message: "If you reference or build upon Nexus AI (Nexus Assistant), please cite it using the metadata below."
+type: software
+authors:
+  - given-names: Viraj
+    family-names: Jadhav
+    alias: brutal-45
+    email: creatorsports81@gmail.com
+repository-code: "https://github.com/brutal-45/Nexus-assistant"
+url: "https://brutal-45.github.io/Nexus-assistant/"
+abstract: >-
+  Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) is an open-source,
+  100% offline personal AI assistant for Android and iOS powered by React
+  Native and llama.cpp (llama.rn). It runs quantized GGUF and LiteRT Large
+  Language Models locally on mobile hardware with RAM-aware model tuning,
+  multimodal vision, voice input, speculative decoding, hardware benchmarking,
+  and zero cloud telemetry.
+keywords:
+  - nexus-ai
+  - nexus-assistant
+  - brutal-45
+  - offline-ai
+  - on-device-ai
+  - local-llm
+  - ai-assistant
+  - llama-cpp
+  - gguf
+  - react-native
+  - android
+  - ios
+license: MIT
+version: 1.18.5
+date-released: "2026-10-07"

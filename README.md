@@ -1,43 +1,73 @@
 <div align="center">
-<img src="src/assets/pocketpal-dark-v2.png" alt="Nexus logo" width="120" />
+<a href="https://github.com/brutal-45/Nexus-assistant">
+  <img
+    src="docs/og-banner.jpg"
+    alt="Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) — Open-Source Offline On-Device AI Assistant for Android and iOS"
+    width="820"
+  />
+</a>
 
-# Nexus
+# Nexus AI — Open-Source Offline AI Assistant
 
-**A private AI assistant that runs entirely on your phone. Chat with language models fully on-device — no server, no account, no data leaving your device.**
+**Nexus AI (`Nexus Assistant`) by [Viraj Jadhav (`@brutal-45`)](https://github.com/brutal-45) is a 100% offline, private on-device AI assistant for Android and iOS. Run local GGUF & LiteRT Large Language Models directly on your phone — no cloud servers, no accounts, and zero data leaving your device.**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Latest Release](https://img.shields.io/github/v/release/brutal-45/Nexus-assistant?label=Download&color=7c3aed)](https://github.com/brutal-45/Nexus-assistant/releases/latest)
+[![CI](https://github.com/brutal-45/Nexus-assistant/actions/workflows/ci.yml/badge.svg)](https://github.com/brutal-45/Nexus-assistant/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-0ea5e9.svg)](LICENSE)
+[![Maintainer: brutal-45](https://img.shields.io/badge/Maintainer-brutal--45-1e293b)](https://github.com/brutal-45)
+[![Website](https://img.shields.io/badge/Website-Nexus%20AI-22d3ee)](https://brutal-45.github.io/Nexus-assistant/)
 
-iOS + Android · Maintained by [Viraj Jadhav](https://github.com/brutal-45) · Powered by React Native + `llama.cpp` (`llama.rn`)
+[Download APK / IPA](https://github.com/brutal-45/Nexus-assistant/releases/latest) · [Official Website](https://brutal-45.github.io/Nexus-assistant/) · [Model Catalog](models/README.md) · [Report an Issue](https://github.com/brutal-45/Nexus-assistant/issues)
 </div>
 
 ---
 
-## Overview
+## Why Nexus AI Stands Out Among Open-Source AI Projects on GitHub
 
-Nexus brings local, offline large language models to mobile devices with automatic RAM-aware tuning, multimodal vision & voice support, speculative decoding, customizable AI Pals, and built-in hardware benchmarking.
+Unlike mobile AI apps that act as thin wrappers around paid cloud APIs, **Nexus AI (`brutal-45/Nexus-assistant`)** executes real neural inference locally on mobile silicon using React Native and `llama.cpp` (`llama.rn`):
+
+- **100% Offline & Verifiable Privacy:** Works in airplane mode, underground, or completely off-grid. Zero servers, zero user accounts, and zero telemetry — every line of source code is open and auditable under the MIT License.
+- **RAM-Aware Smart Model Catalog (`Nexus 1.0 Nano` → `Nexus 3.5 Reasoner`):** Automatically profiles device memory (3 GB to 12 GB+ RAM) and recommends optimal quantized models across **Llama 3.1**, **Qwen 3 / 3.5 / 2.5 Coder**, **Google Gemma 3 & 4**, **Mistral / Ministral**, **Phi-4 Mini**, **SmolLM3**, **Liquid LFM2.5**, and **DeepSeek R1 Distill**.
+- **Multimodal Vision & Offline Voice:** Pair Vision-Language Models (VLMs) with camera or gallery photos, talk hands-free with on-device speech recognition & synthesis, and customize behavior with **AI Pals** and custom system prompts.
+- **Direct Hugging Face GGUF Hub Integration:** Search, inspect, and download thousands of community GGUF and LiteRT models directly inside the app.
+- **Hardware Acceleration & Benchmarking:** Leverages **Apple Metal** on iOS and **OpenCL / CPU / NPU** runtimes on Android, complete with draft-model **speculative decoding** and built-in token/second hardware benchmarking.
+- **In-App Release Updates:** Installed devices can check GitHub Releases for new signed Android `.apk` and iOS `.ipa` builds with one tap.
+
+## Project Overview & Technical Identity
 
 | Property | Value |
 |---|---|
-| App display name | `Nexus` |
-| Android `applicationId` | `com.nexusai.nexus` |
-| iOS bundle ID | `com.nexusai.nexus` |
-| Deep-link scheme | `nexus://` |
-| Current version | `1.18.5` (build `10`) |
-| License | [MIT](LICENSE) — Copyright (c) 2026 Viraj Jadhav |
+| Project / App Name | **Nexus AI** (`Nexus` / `Nexus Assistant`) |
+| Author & Maintainer | [**Viraj Jadhav** (`@brutal-45`)](https://github.com/brutal-45) |
+| GitHub Repository | [`github.com/brutal-45/Nexus-assistant`](https://github.com/brutal-45/Nexus-assistant) |
+| Official Project Site | [`brutal-45.github.io/Nexus-assistant`](https://brutal-45.github.io/Nexus-assistant/) |
+| Android `applicationId` & iOS Bundle ID | `com.nexusai.nexus` |
+| Deep-Link Scheme | `nexus://` |
+| Current Version | `1.18.5` (build `10`) |
+| License | [MIT License](LICENSE) — Copyright (c) 2026 Viraj Jadhav |
 
-## Quick Start (Debug Builds)
+## Download & Quick Start
+
+### Install Prebuilt App (Android & iOS)
+
+1. Open [**Latest GitHub Release (`v1.18.5`)**](https://github.com/brutal-45/Nexus-assistant/releases/latest).
+2. **Android:** Download `Nexus-*.apk` and open it on your phone (or use `Nexus-*.aab` for Google Play distribution).
+3. **iOS:** Download `Nexus-*.ipa` and install via AltStore, Sideloadly, or TrollStore.
+4. Open the **Models** tab → choose a recommended **Nexus** model matched to your phone's RAM → tap **Load** and chat offline.
+
+### Build from Source (Debug Builds)
 
 Prerequisites: Node `22.21.0+`, Yarn `1.22.22`, JDK `17`, Android Studio (SDK 35/36), Xcode `16+`, CocoaPods.
 
 ```bash
+git clone https://github.com/brutal-45/Nexus-assistant.git
+cd Nexus-assistant
 yarn install
 cd ios && bundle exec pod install && cd ..
 
 yarn android                 # run on Android device/emulator
 yarn ios                     # run on iOS device (Metal) / simulator (CPU-only)
 ```
-
-First launch: open the **Models** tab → pick a recommended **Nexus** model for your device RAM (or search Hugging Face for any GGUF) → download → tap **Load** and chat offline.
 
 ## Release Builds
 
@@ -71,15 +101,11 @@ open PocketPal.xcworkspace
 
 For automated unsigned `.ipa` builds (installable via AltStore, Sideloadly, or TrollStore), `.github/workflows/ios-release.yml` builds and attaches `Nexus-<tag>.ipa` on every `v*` tag push or manual dispatch.
 
-## Staying Up to Date
-
-Installed devices check this repository's latest GitHub Release (at most once a day) and show a one-tap update dialog with a direct link to the latest APK (Android) or IPA (iOS). You can also check manually via **About → Updates → Check for updates**.
-
 ## Nexus Model Lineup & Custom Models
 
-- **Built-in Nexus catalog:** the Models tab recommends the **Nexus lineup** (Nexus 1.0 Nano → Nexus 3.5 Reasoner) automatically matched to device RAM. See [`models/README.md`](models/README.md) for the full table.
+- **Built-in 21-model Nexus catalog:** the Models tab recommends the **Nexus lineup** (`Nexus 1.0 Nano` at ~230 MB through `Nexus 3.5 Reasoner`, `Nexus 3.4 Coder`, and `Nexus 3.3 Max`) automatically matched to device RAM. See [`models/README.md`](models/README.md) for the complete specification table.
 - **Publish model packs on GitHub:** place `.gguf` / `.litertlm` / `.task` files in `models/` (Git LFS supported) and run **Actions → Model Release** to publish versioned release assets (up to 2 GiB per file).
-- **Sizing guidance:** sub-4 GB devices → ≤1 GB `Q4_K_M` (`n_ctx: 1024`); 6–8 GB → 1.5–4B; 12 GB+ → 7–8B.
+- **RAM sizing guidance:** sub-4 GB devices → ≤1 GB `Q4_K_M` (`n_ctx: 1024`); 6–8 GB → 1.5–4B; 8–12 GB+ → 7–8B.
 
 ## Automated Workflows (GitHub Actions)
 
@@ -97,6 +123,29 @@ git tag v1.18.6 && git push origin v1.18.6
 ```
 
 See [`docs/RELEASE_REQUIREMENTS.md`](docs/RELEASE_REQUIREMENTS.md) for optional signing and service secrets.
+
+## Frequently Asked Questions (FAQ)
+
+### What is Nexus AI (Nexus Assistant) by brutal-45?
+**Nexus AI** (also known as **Nexus Assistant**) is an open-source, 100% offline personal AI assistant app for Android and iOS created and maintained by **Viraj Jadhav** ([`@brutal-45`](https://github.com/brutal-45)). Built with React Native and `llama.cpp` (`llama.rn`), it runs quantized GGUF and LiteRT language models directly on mobile devices without cloud servers or telemetry.
+
+### Does Nexus Assistant work completely offline without internet?
+Yes. After downloading a model onto your phone, every token of inference runs locally on your device's CPU, GPU (Apple Metal on iOS, OpenCL on Android), or NPU — including in airplane mode or off-grid environments.
+
+### Which local LLMs can I run in Nexus AI?
+Nexus ships a curated 21-model catalog spanning **Llama 3.1 8B**, **Qwen 3 / 3.5 / 2.5 Coder**, **Gemma 3 & Gemma 4**, **Mistral 7B & Ministral**, **Phi-4 Mini**, **SmolLM3**, **Liquid LFM2.5 (including Vision)**, and **DeepSeek R1 Distill**, plus any compatible GGUF model from Hugging Face.
+
+### Who created Nexus Assistant (`brutal-45` / Viraj Jadhav)?
+Nexus Assistant is developed and maintained by **Viraj Jadhav** on GitHub under [`brutal-45`](https://github.com/brutal-45) (often searched as `brutal-45` or `brutal -45`) at [`github.com/brutal-45/Nexus-assistant`](https://github.com/brutal-45/Nexus-assistant).
+
+### How do I update Nexus AI on my phone?
+Installed devices automatically check this repository's latest GitHub Release (at most once every 24 hours) and offer a one-tap update, or you can check manually via **About → Updates → Check for updates**.
+
+## Author & Maintainer
+
+- **Viraj Jadhav** — GitHub: [@brutal-45](https://github.com/brutal-45) (`brutal-45`)
+- **Repository:** [https://github.com/brutal-45/Nexus-assistant](https://github.com/brutal-45/Nexus-assistant)
+- **Project Website:** [https://brutal-45.github.io/Nexus-assistant/](https://brutal-45.github.io/Nexus-assistant/)
 
 ## Contributing
 
