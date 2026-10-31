@@ -24,7 +24,7 @@ Steps to reproduce the behavior:
 **Environment (please complete the following information):**
 - Device: [e.g., iPhone 12, Samsung Galaxy S21]
 - OS: [e.g., iOS 14.4, Android 11]
-- App Version: [e.g., 1.11.17]
+- App Version: [e.g., 1.18.5]
 - Device RAM: [e.g., 4GB, 6GB, 8GB]
 
 **Model Information (required for model/inference crashes):**

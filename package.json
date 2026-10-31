@@ -1,6 +1,17 @@
 {
   "name": "nexus-app",
   "version": "1.18.5",
+  "description": "Nexus — Private on-device AI assistant for Android and iOS",
+  "license": "MIT",
+  "author": "Viraj Jadhav <creatorsports81@gmail.com> (https://github.com/brutal-45)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brutal-45/Nexus-assistant.git"
+  },
+  "homepage": "https://github.com/brutal-45/Nexus-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/brutal-45/Nexus-assistant/issues"
+  },
   "private": true,
   "scripts": {
     "prepare": "husky",

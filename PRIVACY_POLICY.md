@@ -1,6 +1,6 @@
 # Nexus Privacy Policy
 
-_Last updated: 2026-09-17_
+_Last updated: 2026-10-31_
 
 Nexus is a private AI assistant that runs entirely on your device. This policy describes, in plain terms, what the app does and does not do with your data.
 
