@@ -363,7 +363,7 @@ class ModelStore {
           this.deviceRamBand = band;
         });
         if (isFirstLaunch) {
-          this.applyRamBandProfile(band);
+          await this.applyRamBandProfile(band);
         }
       } catch (error) {
         console.warn('[ModelStore] RAM band detection failed:', error);
@@ -1703,7 +1703,11 @@ class ModelStore {
         undefined,
         this.contextInitParams,
       );
-      if (requirement <= ceiling) {
+      if (
+        !Number.isFinite(requirement) ||
+        requirement <= 0 ||
+        requirement <= ceiling
+      ) {
         return true;
       }
       return new Promise<boolean>(resolve => {

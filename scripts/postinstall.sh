@@ -1,7 +1,14 @@
 #!/bin/bash
+set -euo pipefail
 
 # Run patch-package first
 npx patch-package
+
+# Skip OpenCL header clone during static-check-only CI runs
+if [ "${RNLLAMA_SKIP_POSTINSTALL:-}" = "1" ]; then
+    echo "RNLLAMA_SKIP_POSTINSTALL=1 set; skipping OpenCL headers check."
+    exit 0
+fi
 
 # Clone OpenCL headers if building llama.rn from source
 OPENCL_HEADERS_DIR="node_modules/llama.rn/third_party/OpenCL-Headers"

@@ -28,6 +28,7 @@ import {
   mockHFModel1,
 } from '../../../jest/fixtures/models';
 import * as RNFS from '@dr.pogodin/react-native-fs';
+import DeviceInfo from 'react-native-device-info';
 
 import {modelStore, uiStore, serverStore} from '..';
 import {LOOKIE_DEFAULT_MODEL} from '../builtinPalModels';
@@ -4795,6 +4796,9 @@ describe('ModelStore', () => {
       runInAction(() => {
         modelStore.version = undefined;
       });
+      (DeviceInfo.getTotalMemory as jest.Mock).mockReturnValueOnce(
+        8 * 1024 * 1024 * 1024,
+      );
       (getCpuCoreCount as jest.Mock).mockResolvedValue(8);
       (getRecommendedThreadCount as jest.Mock).mockResolvedValue(6);
 

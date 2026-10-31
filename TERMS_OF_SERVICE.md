@@ -1,12 +1,12 @@
 # Nexus Terms of Service
 
-_Last updated: 2026-09-17_
+_Last updated: 2026-10-31_
 
-These terms apply to the Nexus mobile app ("the App").
+These terms apply to the Nexus mobile app ("the App"), maintained by Viraj Jadhav (`brutal-45`).
 
 ## 1. What the App is
 
-Nexus is an open-source assistant that runs language models locally on your device. It is provided **free of charge** and **as-is**, under the MIT license (see `LICENSE` in the repository).
+Nexus is an open-source assistant that runs language models locally on your device. It is provided **free of charge** and **as-is**, under the MIT License (`Copyright (c) 2026 Viraj Jadhav` — see `LICENSE` in the repository).
 
 ## 2. Your responsibilities
 

@@ -1,13 +1,24 @@
 {
   "name": "nexus-app",
   "version": "1.18.5",
+  "description": "Nexus — Private on-device AI assistant for Android and iOS",
+  "license": "MIT",
+  "author": "Viraj Jadhav <creatorsports81@gmail.com> (https://github.com/brutal-45)",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/brutal-45/Nexus-assistant.git"
+  },
+  "homepage": "https://github.com/brutal-45/Nexus-assistant#readme",
+  "bugs": {
+    "url": "https://github.com/brutal-45/Nexus-assistant/issues"
+  },
   "private": true,
   "scripts": {
     "prepare": "husky",
-    "postinstall": "./scripts/postinstall.sh",
+    "postinstall": "bash ./scripts/postinstall.sh",
     "android": "react-native run-android --mode=prodDebug",
     "build:android": "cd android && ./gradlew assembleProdDebug && cd ..",
-    "build:android:release": "cd android && ./gradlew bundleRelease && cd ..",
+    "build:android:release": "cd android && ./gradlew bundleProdRelease && cd ..",
     "android:build:e2e": "cd android && E2E_BUILD=true ./gradlew assembleE2eReleaseE2e && cd ..",
     "ios": "react-native run-ios --simulator=\"iPhone 16 Pro\"",
     "ios:build": "cd ios && xcodebuild CC=clang CPLUSPLUS=clang++ LD=clang LDPLUSPLUS=clang++ -workspace PocketPal.xcworkspace -scheme PocketPal -configuration Debug -sdk iphonesimulator -arch $(uname -m) ONLY_ACTIVE_ARCH=YES GCC_OPTIMIZATION_LEVEL=0 GCC_PRECOMPILE_PREFIX_HEADER=YES ASSETCATALOG_COMPILER_OPTIMIZATION=time DEBUG_INFORMATION_FORMAT=dwarf COMPILER_INDEX_STORE_ENABLE=NO | xcpretty",

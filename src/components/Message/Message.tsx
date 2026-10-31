@@ -139,12 +139,12 @@ export const Message = observer(
 
     const {container, contentContainer, dateHeader, pressable, timestamp} =
       styles({
-      currentUserIsAuthor,
-      message,
-      messageWidth,
-      roundBorder,
-      theme,
-    });
+        currentUserIsAuthor,
+        message,
+        messageWidth,
+        roundBorder,
+        theme,
+      });
 
     const handlePressIn = () => {
       Animated.spring(scaleAnim, {

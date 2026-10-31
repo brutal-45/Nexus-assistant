@@ -67,14 +67,12 @@ If your changes affect the app's behavior, ensure you include or update tests as
 
 ### Translations (Localization)
 
-Nexus uses [Weblate](https://hosted.weblate.org/translate/pocketpal-ai) for managing translations. When adding or changing user-facing strings:
+When adding or changing user-facing strings:
 
-- **Only edit `src/locales/en.json`** (the English source file). Do not edit `ja.json`, `zh.json`, or other language files directly — they are managed by translators through Weblate and will be overwritten.
+- **Edit `src/locales/en.json`** (the English source file). Missing keys in other locale files automatically fall back to English at runtime.
 - Use `{{placeholder}}` syntax (double braces) for dynamic values, e.g. `"Imported {{count}} sessions"`.
-- Run `yarn l10n:validate` to check that your JSON is valid and placeholders are consistent.
-- The product name is **Nexus** in every language. Never translate or rebrand it (upstream translations may still say "PocketPal" — re-check the brand token after any Weblate sync).
-
-**To contribute translations**, visit [the Weblate project](https://hosted.weblate.org/translate/pocketpal-ai) — no code changes needed.
+- Run `yarn l10n:validate` to verify that all locale JSON files parse cleanly and placeholders are consistent.
+- Keep the product name **Nexus** consistent across all languages.
 
 ### Commit Message Guidelines
 
@@ -89,7 +87,7 @@ We follow the **Conventional Commits** specification for our commit messages to 
 
 1. Commit your changes following the commit message guidelines.
 2. Push your branch to your fork.
-3. Open a pull request from your branch in your fork to the `main` branch of this repository.
+3. Open a pull request from your branch in your fork to the `master` branch of this repository.
 4. Follow the pull request template and fill in all relevant details.
 
 Before opening a pull request, make sure:

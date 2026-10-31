@@ -2,32 +2,63 @@ name: python script
 
 on:
   workflow_dispatch:
-  # Trigger manually once, and it will loop
+  # Trigger manually once; updates updates.txt every 5 minutes for 5 hours.
 
 permissions:
   contents: write
 
+concurrency:
+  group: update-timestamp-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   update-timestamp:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    timeout-minutes: 330
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v6
+
       - name: Run every 5 minutes in a loop
         run: |
+          set -uo pipefail
           git config user.name "brutal-45"
           git config user.email "creatorsports81@gmail.com"
-          
+
+          BRANCH="${GITHUB_REF_NAME}"
+          TIMESTAMP_FILE="updates.txt"
+
           # Run for 5 hours (60 iterations x 5 minutes = 300 minutes)
-          for i in {1..60}; do
-            TIMESTAMP_FILE="updates.txt"
-            echo "Last checked: $(date -u +"%Y-%m-%dT%H:%M:%SZ")" > "$TIMESTAMP_FILE"
-            git add "$TIMESTAMP_FILE"
-            
-            if ! git diff --cached --quiet; then
-              git commit -m "python script: $(date -u)"
-              git push origin HEAD
+          for i in $(seq 1 60); do
+            pushed=0
+            for attempt in 1 2 3 4 5; do
+              git fetch origin "$BRANCH" && git reset --hard "origin/$BRANCH"
+              NOW_UTC="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+              echo "Last checked: ${NOW_UTC}" > "$TIMESTAMP_FILE"
+              git add "$TIMESTAMP_FILE"
+
+              if git diff --cached --quiet; then
+                pushed=1
+                break
+              fi
+
+              git commit --no-verify -m "chore: update timestamp ${NOW_UTC} [skip ci]"
+              if git push origin "HEAD:refs/heads/${BRANCH}"; then
+                echo "Iteration ${i}/60 pushed at ${NOW_UTC}."
+                pushed=1
+                break
+              fi
+
+              echo "Push raced with another commit (attempt ${attempt}/5); retrying in 5s..."
+              sleep 5
+            done
+
+            if [ "$pushed" -ne 1 ]; then
+              echo "::warning::Could not push timestamp on iteration ${i}/60 after 5 attempts; will retry next cycle."
             fi
-            
-            echo "Waiting 5 minutes..."
-            sleep 300
+
+            if [ "$i" -lt 60 ]; then
+              echo "Waiting 5 minutes..."
+              sleep 300
+            fi
           done
