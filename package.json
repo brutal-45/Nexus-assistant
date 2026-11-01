@@ -1,14 +1,32 @@
 {
   "name": "nexus-app",
   "version": "1.18.5",
-  "description": "Nexus — Private on-device AI assistant for Android and iOS",
+  "description": "Nexus AI (Nexus Assistant) by Viraj Jadhav (brutal-45) — Open-source offline on-device AI assistant for Android and iOS",
+  "keywords": [
+    "nexus-ai",
+    "nexus-assistant",
+    "brutal-45",
+    "viraj-jadhav",
+    "offline-ai",
+    "ai-assistant",
+    "on-device-ai",
+    "local-llm",
+    "llama-cpp",
+    "gguf",
+    "react-native",
+    "android",
+    "ios",
+    "private-ai",
+    "voice-assistant",
+    "multimodal-ai"
+  ],
   "license": "MIT",
   "author": "Viraj Jadhav <creatorsports81@gmail.com> (https://github.com/brutal-45)",
   "repository": {
     "type": "git",
     "url": "https://github.com/brutal-45/Nexus-assistant.git"
   },
-  "homepage": "https://github.com/brutal-45/Nexus-assistant#readme",
+  "homepage": "https://brutal-45.github.io/Nexus-assistant/",
   "bugs": {
     "url": "https://github.com/brutal-45/Nexus-assistant/issues"
   },

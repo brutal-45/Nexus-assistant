@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://brutal-45.github.io/Nexus-assistant/sitemap.xml

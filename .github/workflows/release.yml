@@ -200,18 +200,20 @@ jobs:
         uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ env.RELEASE_TAG }}
-          name: Nexus ${{ env.RELEASE_TAG }}
+          name: Nexus AI (Nexus Assistant) ${{ env.RELEASE_TAG }} — Offline On-Device AI by brutal-45
           body: |
-            ## Nexus ${{ env.RELEASE_TAG }}
+            ## Nexus AI (Nexus Assistant) ${{ env.RELEASE_TAG }}
 
-            **Install:** download `Nexus-*.apk` below and open it on your
-            Android device (allow "install unknown apps" if prompted).
+            Open-source, 100% offline on-device AI assistant for Android & iOS maintained by **Viraj Jadhav** ([@brutal-45](https://github.com/brutal-45)).
 
-            After installing, open the **Models** tab and download a
-            Nexus model (Nexus 1.0 Nano for low-RAM devices, Nexus 2.0+ for
-            8 GB+ devices). All inference runs fully on-device.
+            - **Android (APK):** download `Nexus-*.apk` below and open it on your Android device (allow "install unknown apps" if prompted).
+            - **Google Play (AAB):** use `Nexus-*.aab` for Google Play upload.
+            - **iOS (IPA):** download `Nexus-*.ipa` and install via AltStore, Sideloadly, or TrollStore.
 
-            Prefer a store build? Use `Nexus-*.aab` for Google Play upload.
+            After installing, open the **Models** tab and download a recommended **Nexus** model matched to your device RAM (`Nexus 1.0 Nano` for 3–4 GB devices, `Nexus 2.0+` / `Nexus 3.x` for 8–12 GB+ devices). All LLM inference runs 100% locally on your phone with zero cloud telemetry.
+
+            - **Repository:** https://github.com/brutal-45/Nexus-assistant
+            - **Website:** https://brutal-45.github.io/Nexus-assistant/
           draft: false
           prerelease: ${{ contains(env.RELEASE_TAG, '-') }}
           generate_release_notes: true
